@@ -44,7 +44,7 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
                 tuples(j).r_noise_cond = r(:, j);
                 tuples(j).r_noise_avg = nanmean(r(:, j));
             end
-            insertfast(nc.NoiseCorrelations, tuples)
+            insert(nc.NoiseCorrelations, tuples)
         end
     end
 end
