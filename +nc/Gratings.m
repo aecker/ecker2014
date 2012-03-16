@@ -14,8 +14,8 @@ post_stimulus_time : float # time monkey has to fixate after stimulus
 classdef Gratings < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.Gratings');
-        popRel = stimulation.StimTrialGroup * acq.Stimulation ...
-            & 'exp_type IN ("GratingExperiment", "AcuteGratingExperiment")';
+        popRel = stimulation.StimTrialGroup * ...
+            acq.Stimulation('exp_type IN ("GratingExperiment", "AcuteGratingExperiment")');
     end
     
     methods 
