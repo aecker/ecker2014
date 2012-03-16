@@ -32,9 +32,13 @@ populate(ephys.SpikeSet, subject)
 % pairs of neurons
 populate(nc.UnitPairSet, subject)
 
-% noise correlations
-populate(nc.SpikeCountSet, subject)
-populate(nc.NoiseCorrelationSet, subject)
+%% noise correlations
+matlabpool
+parfor i = 1:12
+    parPopulate(nc.SpikeCountSet, nc.Jobs, subject)
+    parPopulate(nc.NoiseCorrelationSet, nc.Jobs, subject)
+end
+matlabpool close
 
 % stimulus
 
