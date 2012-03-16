@@ -12,7 +12,7 @@ classdef UnitPairMembership < dj.Relvar
     end
     
     methods 
-        function self = UnitPairs(varargin)
+        function self = UnitPairMembership(varargin)
             self.restrict(varargin{:})
         end
     end
