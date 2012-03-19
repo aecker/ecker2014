@@ -14,8 +14,22 @@ end
 % spike detection (on at-detect)
 populate(detect.Sets, subject);
 
+
+%% Spike sorting
 % automatic spike sorting (on HNL cluster -> mackey)
 % /home/toliaslab/users/alex/projects/acq/processing/cluster/run
+
+% automatic sorting on local computer
+addpath ~/lab/projects/clustering
+run ~/lab/libraries/various/spider/use_spider.m
+matlabpool
+parfor i = 1:12
+    parPopulate(sort.TetrodesMoGAutomatic, sort.Jobs, subject)
+end
+matlabpool close
+
+
+%%
 
 % manual spike sorting step
 sortKeys = fetch(sort.Sets(subject));
