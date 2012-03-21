@@ -1,4 +1,3 @@
-
 % Noise correlations by sessions.
 % AE 2012-03-16
 
@@ -29,9 +28,7 @@ for i = 1:N
     if i == N
         xlabel('Noise correlation')
     end
-%     if i == 1 || i == 4
-        ylabel('# of pairs')
-%     end
+    ylabel('# of pairs')
     title(sprintf('avg = %.2f', mean(rr{i})))
 end
 
