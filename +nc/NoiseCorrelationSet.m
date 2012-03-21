@@ -2,7 +2,7 @@
 nc.NoiseCorrelationSet (computed) # Set of all noise correlations
 
 -> nc.UnitPairSet
--> nc.SpikeCountSet
+-> ae.SpikeCountSet
 -> nc.Gratings
 ---
 %}
@@ -10,7 +10,7 @@ nc.NoiseCorrelationSet (computed) # Set of all noise correlations
 classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.NoiseCorrelationSet');
-        popRel = nc.UnitPairSet * nc.SpikeCountSet;
+        popRel = nc.UnitPairSet * ae.SpikeCountSet;
     end
     
     methods 
@@ -28,7 +28,7 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
             r = zeros(nCond, nPairs);
             for i = 1:nCond
                 fprintf('Condition %d\n', i)
-                scTuples = fetch(nc.SpikeCounts(key) & nc.GratingTrials(condKeys(i)), 'spike_count');
+                scTuples = fetch(ae.SpikeCounts(key) & nc.GratingTrials(condKeys(i)), 'spike_count');
                 scTuples = dj.struct.sort(scTuples, {'unit_id', 'trial_num'});
                 nUnits = scTuples(end).unit_id;
                 spikeCounts = reshape([scTuples.spike_count], [], nUnits);
