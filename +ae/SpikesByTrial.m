@@ -20,27 +20,27 @@ classdef SpikesByTrial < dj.Relvar
         
         function k = makeTuples(self, key, spikes, k)
             tuple = key;
-            showStimEvent = stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"';
-            showStimTime = fetch1(showStimEvent, 'event_time');
-            endStimEvent = stimulation.StimTrialEvents(key) & 'event_type = "endStimulus"';
-            if ~count(endStimEvent)
-                endStimEvent = stimulation.StimTrialEvents(key) & 'event_type LIKE "%Abort"';
+            startTrial = fetch1(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time');
+            totalTrials = count(stimulation.StimTrials(rmfield(key, 'trial_num')));
+            if key.trial_num < totalTrials
+                endTrial = fetch1(stimulation.StimTrialEvents( ...
+                    setfield(key, 'trial_num', key.trial_num + 1)) & 'event_type = "showStimulus"', 'event_time'); %#ok
+            else
+                endTrial = fetch1(stimulation.StimTrialEvents(key), 'max(event_time) -> t') + 2000;
             end
-            endStimTime = fetch1(endStimEvent, 'event_time');
-            pre = key.pre_stim_time;
-            post = key.post_stim_time;
-            while k > 0 && spikes(k) > showStimTime - pre
+            showStim = fetch1(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time');
+            while k > 0 && spikes(k) > startTrial
                 k = k - 1;
             end
             nSpikes = numel(spikes);
-            while k < nSpikes && spikes(k + 1) < showStimTime - pre
+            while k < nSpikes && spikes(k + 1) < startTrial
                 k = k + 1;
             end
             k0 = k;
-            while k < nSpikes && spikes(k + 1) < endStimTime + post
+            while k < nSpikes && spikes(k + 1) < endTrial
                 k = k + 1;
             end
-            tuple.spikes_by_trial = spikes(k0 + 1 : k) - showStimTime;
+            tuple.spikes_by_trial = spikes(k0 + 1 : k) - showStim;
             insert(self, tuple);
         end
     end

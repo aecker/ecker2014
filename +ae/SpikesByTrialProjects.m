@@ -1,7 +1,6 @@
 %{
-ae.SpikesByTrialProjects (manual) # Mapping from parameters to projects
+ae.SpikesByTrialProjects (manual) # Projects for which it should be imported
 
--> ae.SpikesByTrialParams
 -> ae.Projects
 ---
 %}
