@@ -13,7 +13,7 @@ classdef SpikesByTrial < dj.Relvar
         table = dj.Table('ae.SpikesByTrial');
     end
     
-    methods 
+    methods
         function self = SpikesByTrial(varargin)
             self.restrict(varargin{:})
         end
@@ -42,6 +42,38 @@ classdef SpikesByTrial < dj.Relvar
             end
             tuple.spikes_by_trial = spikes(k0 + 1 : k) - showStim;
             insert(self, tuple);
+        end
+    end
+    
+    methods(Static)
+        function counts = spikeCount(relvar, win)
+            % Get spike counts.
+            %   counts = ae.SpikesByTrial.spikeCount(relvar, win) returns
+            %   the spike counts for each tuple in relvar. The counting
+            %   window is specified by the two-element vector win (times
+            %   relative to stimulus onset).
+            %
+            % Note that you can't rely on any particular order when using
+            % this function. Use spikeCountStruct if the order of the data
+            % is important.
+            spikes = fetchn(relvar, 'spikes_by_trial');
+            counts = cellfun(@(x) sum(x > win(1) & x < win(2)), spikes);
+        end
+        
+        function result = spikeCountStruct(relvar, win, varargin)
+            % Get spike counts including primary keys.
+            %   result = ae.SpikesByTrial.spikeCountStruct(relvar, win)
+            %   returns a structure containing spike counts and primary
+            %   keys for each tuple in relvar. The counting window is
+            %   specified by the two-element vector win (times relative to
+            %   stimulus onset).
+            %
+            %   result = ae.SpikesByTrial.spikeCountStruct(relvar, win, field1, field2, ...)
+            %   fetches additional non-key fields from relvar.
+            result = fetch(relvar, 'spikes_by_trial', varargin{:});
+            counts = cellfun(@(x) sum(x > win(1) & x < win(2)), {result.spikes_by_trial}, 'UniformOutput', false);
+            [result.spike_count] = deal(counts{:});
+            result = rmfield(result, 'spikes_by_trial');
         end
     end
 end
