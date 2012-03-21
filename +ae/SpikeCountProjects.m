@@ -1,14 +1,14 @@
 %{
-nc.SpikeCountProjects (manual) # Mapping from parameters to projects
+ae.SpikeCountProjects (manual) # Mapping from parameters to projects
 
--> nc.SpikeCountParams
+-> ae.SpikeCountParams
 -> ae.Projects
 ---
 %}
 
 classdef SpikeCountProjects < dj.Relvar
     properties(Constant)
-        table = dj.Table('nc.SpikeCountProjects');
+        table = dj.Table('ae.SpikeCountProjects');
     end
     
     methods 

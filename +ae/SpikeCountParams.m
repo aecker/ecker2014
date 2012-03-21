@@ -1,5 +1,5 @@
 %{
-nc.SpikeCountParams (manual) # Parameters for spike counts
+ae.SpikeCountParams (manual) # Parameters for spike counts
 
 spike_count_start : float # start of counting window (ms, relative to stim onset)
 spike_count_end   : float # end of window
@@ -8,7 +8,7 @@ spike_count_end   : float # end of window
 
 classdef SpikeCountParams < dj.Relvar
     properties(Constant)
-        table = dj.Table('nc.SpikeCountParams');
+        table = dj.Table('ae.SpikeCountParams');
     end
     
     methods 

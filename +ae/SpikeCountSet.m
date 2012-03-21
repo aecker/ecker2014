@@ -1,18 +1,18 @@
 %{
-nc.SpikeCountSet (computed) # Spike counts
+ae.SpikeCountSet (computed) # Spike counts
 
 -> acq.StimulationSyncDiode
 -> ephys.SpikeSet
 -> stimulation.StimTrialGroup
--> nc.SpikeCountParams
+-> ae.SpikeCountParams
 ---
 %}
 
 classdef SpikeCountSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
-        table = dj.Table('nc.SpikeCountSet');
-        popRel = (acq.StimulationSyncDiode & (ae.ProjectsStimulation * nc.SpikeCountProjects)) ...
-            * ephys.SpikeSet * stimulation.StimTrialGroup * nc.SpikeCountParams;
+        table = dj.Table('ae.SpikeCountSet');
+        popRel = (acq.StimulationSyncDiode & (ae.ProjectsStimulation * ae.SpikeCountProjects)) ...
+            * ephys.SpikeSet * stimulation.StimTrialGroup * ae.SpikeCountParams;
     end
     
     methods 
@@ -22,7 +22,7 @@ classdef SpikeCountSet < dj.Relvar & dj.AutoPopulate
         
         function makeTuples(self, key)
             insert(self, key);
-            makeTuples(nc.SpikeCounts, key);
+            makeTuples(ae.SpikeCounts, key);
         end
     end
 end
