@@ -40,16 +40,34 @@ manualSortDone(sortKeys(1), tetrodeNum, 'Comment')
 populate(sort.TetrodesMoGFinalize, subject)
 populate(sort.SetsCompleted, subject)
 
+
+%% Multi unit
+% createSortSet(fetch(detect.Params(subject) - sort.Params('sort_method_num=4')), 'MultiUnit')
+populate(sort.Sets, subject)
+populate(sort.MultiUnit, subject)
+populate(sort.SetsCompleted, subject)
+populate(ephys.SpikeSet, subject)
+
+
+%% Analysis tables
+
+% stimulation
+populate(stimulation.StimTrialGroup, subject)
+populate(nc.Gratings, subject)
+
 % spikes
 populate(ephys.SpikeSet, subject)
 
 % pairs of neurons
 populate(nc.UnitPairSet, subject)
 
+
 %% noise correlations
 matlabpool
 parfor i = 1:12
-    parPopulate(nc.SpikeCountSet, nc.Jobs, subject)
+    parPopulate(ae.SpikeCountSet, ae.Jobs, subject)
+    parPopulate(ae.SpikesByTrialSet, ae.Jobs, subject)
+%     parPopulate(ae.LfpByTrialSet, ae.Jobs, subject)
     parPopulate(nc.NoiseCorrelationSet, nc.Jobs, subject)
 end
 matlabpool close
