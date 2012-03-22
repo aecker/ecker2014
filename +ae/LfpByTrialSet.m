@@ -2,10 +2,11 @@
 ae.LfpByTrialSet (computed) # LFP organized by trials
 
 -> stimulation.StimTrialGroup
--> ae.LfpByTrialParams
+-> ae.LfpFilter
 -> cont.Lfp
 ---
 lfp_sampling_rate                   : double        # sampling rate
+pre_stim_time                       : float         # start of window (ms before stim onset)
 lfpbytrialset_ts=CURRENT_TIMESTAMP  : timestamp     # automatic timestamp. Do not edit
 %}
 
@@ -13,7 +14,7 @@ classdef LfpByTrialSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('ae.LfpByTrialSet');
         popRel = (acq.StimulationSyncDiode & (ae.ProjectsStimulation * ae.LfpByTrialProjects)) ...
-            * cont.Lfp * stimulation.StimTrialGroup * ae.LfpByTrialParams;
+            * cont.Lfp * stimulation.StimTrialGroup * ae.LfpFilter;
     end
     
     methods 
@@ -28,6 +29,7 @@ classdef LfpByTrialSet < dj.Relvar & dj.AutoPopulate
             br = baseReader(lfpFile);
             tuple = key;
             tuple.lfp_sampling_rate = getSamplingRate(br);
+            tuple.pre_stim_time = 1000;
             insert(self, tuple);
             
             % setup filtering
@@ -57,7 +59,7 @@ classdef LfpByTrialSet < dj.Relvar & dj.AutoPopulate
                 end
                 trials = fetch(cont.Lfp(key) * (stimulation.StimTrials(key) ...
                     & stimulation.StimTrialEvents('event_type = "showStimulus"')) ...
-                    * ae.LfpByTrialParams(key));
+                    * ae.LfpFilter(key));
                 for trial = trials'
                     trial.electrode_num = electrodes(i);
                     makeTuples(ae.LfpByTrial, trial, reader);

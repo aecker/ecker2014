@@ -1,7 +1,6 @@
 %{
 ae.LfpByTrialProjects (manual) # Mapping from parameters to projects
 
--> ae.LfpByTrialParams
 -> ae.Projects
 ---
 %}
