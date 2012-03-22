@@ -1,7 +1,7 @@
 % Processing my anesthetized noise correlation data
 % AE 2012-02-14
 
-subject = 'subject_id = 11';
+subject = acq.Subjects('subject_name IN ("Max", "Albert")');
 
 % create spike detection and sorting jobs
 ephysKeys = fetch(acq.Ephys(subject) & acq.EphysStimulationLink);
@@ -63,14 +63,16 @@ populate(nc.UnitPairSet, subject)
 
 
 %% noise correlations
-matlabpool
+matlabpool open 4
 parfor i = 1:12
     parPopulate(ae.SpikeCountSet, ae.Jobs, subject)
     parPopulate(ae.SpikesByTrialSet, ae.Jobs, subject)
-%     parPopulate(ae.LfpByTrialSet, ae.Jobs, subject)
+    parPopulate(nc.OriTuningSet, nc.Jobs, subject)
     parPopulate(nc.NoiseCorrelationSet, nc.Jobs, subject)
 end
 matlabpool close
 
 % stimulus
 
+%%
+populate(ae.LfpByTrialSet, subject)
