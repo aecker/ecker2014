@@ -9,6 +9,9 @@ function plotRastersLFP(key, condition, blocks)
 % AE 2012-03-22
 
 nCond = 16;
+% window = [2500 3500];
+window = [0 2000];
+
 trialList = sprintf('condition_num = %d AND trial_num BETWEEN %d AND %d', ...
     condition, nCond * (blocks(1) - 1), nCond * blocks(2));
 
@@ -22,7 +25,6 @@ spikes = dj.struct.sort(spikes, {'trial_num', 'unit_id'});
 m = numel(trials);
 n = numel(units);
 ylbl = 'Trials';
-window = [0 2000];
 
 lfp = fetch((nc.GratingTrials(key) & trialList) * ae.LfpByTrial(key), '*');
 lfp = dj.struct.sort(lfp, 'trial_num');
