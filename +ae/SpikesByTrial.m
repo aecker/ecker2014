@@ -20,7 +20,7 @@ classdef SpikesByTrial < dj.Relvar
         
         function k = makeTuples(self, key, spikes, k)
             tuple = key;
-            startTrial = fetch1(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time');
+            startTrial = fetch1(stimulation.StimTrialEvents(key) & 'event_type = "startTrial"', 'event_time');
             totalTrials = count(stimulation.StimTrials(rmfield(key, 'trial_num')));
             if key.trial_num < totalTrials
                 endTrial = fetch1(stimulation.StimTrialEvents( ...
