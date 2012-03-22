@@ -14,7 +14,7 @@ trialList = sprintf('condition_num = %d AND trial_num BETWEEN %d AND %d', ...
     condition, nCond * (blocks(1) - 1), nCond * blocks(2));
 
 rel = (nc.GratingTrials(stimKey) & trialList) * acq.EphysStimulationLink ...
-    * sort.Sets('sort_method_num=2') * nc.SpikesByTrial;
+    * sort.Sets('sort_method_num=2') * ae.SpikesByTrial;
 spikes = fetch(rel, 'spikes_by_trial', 'condition_num');
 units = unique([spikes.unit_id]);
 trials = unique([spikes.trial_num]);
@@ -30,7 +30,7 @@ else
     n = numel(units);
     ylbl = 'Trials';
 end
-window = [-250 2350];
+window = [0 2500];
 % window = [50 2050];
 
 % figure(condition), clf
