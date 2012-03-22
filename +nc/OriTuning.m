@@ -11,12 +11,14 @@ pref_ori                : float     # preferred orientation (phi)
 ori_baseline            : float     # baseline offset of orientation tuning curve (f_base)
 ori_kappa               : float     # orientation tuning width (kappa)
 ori_ampl                : float     # orientation tuning curve amplitude (a)
+ori_mean_rate           : blob      # raw mean firing rates for all orientations
 dir_sel_p = NULL        : float     # p value for direction selectivity (a != b)
 pref_dir = NULL         : float     # preferred direction (if applicable)
 dir_baseline = NULL     : float     # baseline offset of orientation tuning curve (f_base)
 dir_kappa = NULL        : float     # direction tuning width (kappa)
 dir_ampl_pref = NULL    : float     # amplitude preferred direction (a)
 dir_ampl_null = NULL    : float     # amplitude opposite direction (b)
+dir_mean_rate = NULL    : blob      # raw mean firing rates for all directions
 
 %}
 
@@ -83,6 +85,11 @@ classdef OriTuning < dj.Relvar
             tuple.ori_kappa = a(2);
             tuple.pref_ori = mod(a(3), pi);
             tuple.ori_ampl = exp(a(4));
+            if max(uDir) > pi
+                tuple.ori_mean_rate = mean(reshape(meanRate, [], 2), 2)';
+            else
+                tuple.ori_mean_rate = meanRate;
+            end
             
             % Test for significance of orientation tuning 
             % we project on a complex exponential with one cycle and asses
@@ -118,6 +125,7 @@ classdef OriTuning < dj.Relvar
                 pref = rate(:, ndx);
                 null = rate(:, mod(ndx + nDir / 2 - 1, nDir) + 1);
                 tuple.dir_sel_p = ranksum(pref(:), null(:));
+                tuple.dir_mean_rate = meanRate;
             end
 			insert(self, tuple)
         end
