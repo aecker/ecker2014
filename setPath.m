@@ -7,3 +7,4 @@ d = d(cellfun(@isempty, regexp({d.name}, '^[\+\.](\w*)')));
 for i = 1:numel(d)
     addpath(fullfile(base, d(i).name))
 end
+addpath(base)
