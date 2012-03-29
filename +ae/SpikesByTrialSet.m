@@ -4,8 +4,15 @@ ae.SpikesByTrialSet (computed) # Spike times organized by trials
 -> stimulation.StimTrialGroup
 -> ephys.SpikeSet
 ---
-spikesbytrialset_ts=CURRENT_TIMESTAMP: timestamp             # automatic timestamp. Do not edit
+pre_stim_time                         : float         # start of window (ms before stim onset)
+spikesbytrialset_ts=CURRENT_TIMESTAMP : timestamp     # automatic timestamp. Do not edit
 %}
+
+% Note: since the times between stimuli are allocated differently to either
+% the next or the previous trial between experiments, we here define the
+% start of the trial via the showStimulus event and include pre_stim_time
+% ms before it. We explicitly don't use the startTrial event for this
+% reason.
 
 classdef SpikesByTrialSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
@@ -20,7 +27,9 @@ classdef SpikesByTrialSet < dj.Relvar & dj.AutoPopulate
         end
         
         function makeTuples(this, key)
-            insert(this, key);
+            tuple = key;
+            tuple.pre_stim_time = 1000;
+            insert(this, tuple);
             for unitKey = fetch(ephys.Spikes(key))'
                 fprintf('Unit %d\n', unitKey.unit_id)
                 spikes = fetch1(ephys.Spikes(unitKey), 'spike_times');
