@@ -3,9 +3,10 @@
 
 
 %% get noise correlations by stim session
-key.subject_id = 9;
-key.sort_method_num = 2;
-key.spike_count_end = 500;
+% key.subject_id = 11;
+% key.sort_method_num = 2;
+% key.spike_count_end = 2000;
+key = 'subject_id IN (9, 11) AND sort_method_num = 2 AND spike_count_end = 2000';
 excludePairs = nc.UnitPairMembership & (ephys.SingleUnit(key) & 'fp + fn > 0.05');
 stimKeys = fetch(acq.Stimulation & nc.NoiseCorrelations(key));
 n = numel(stimKeys);
