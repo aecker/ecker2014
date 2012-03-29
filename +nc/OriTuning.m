@@ -75,12 +75,12 @@ classdef OriTuning < dj.Relvar
             tuple.vis_resp_p = min(1, min(p) * nDir);
             
             % orientation tuning curve
-            [~, ndx] = max(meanRate);
-            a0 = [min(meanRate), 2, uDir(ndx), log(max(meanRate) - min(meanRate))];
+            [~, maxOri] = max(meanRate);
+            a0 = [min(meanRate), 2, uDir(maxOri), log(max(meanRate) - min(meanRate))];
             wmin = 0.8 * min(diff(uDir));
             kmax = log(1/2) / (cos(wmin) - 1);
             opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
-            a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(2)], opt);
+            a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(4)], opt);
             tuple.ori_baseline = a(1);
             tuple.ori_kappa = a(2);
             tuple.pref_ori = mod(a(3), pi);
@@ -105,9 +105,9 @@ classdef OriTuning < dj.Relvar
 
             % direction tuning curve (if applicable)
             if max(uDir) > pi
-                a0(5) = log(meanRate(mod(ndx - 1 + ceil(nDir/2), nDir) + 1) - a0(1));
+                a0(5) = log(meanRate(mod(maxOri - 1 + ceil(nDir/2), nDir) + 1) - a0(1));
                 kmax = log(1/2) / (cos(wmin / 2) - 1);
-                a = lsqcurvefit(@nc.OriTuning.dirTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf -Inf], [Inf kmax Inf a0(2) a0(2)], opt);
+                a = lsqcurvefit(@nc.OriTuning.dirTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf -Inf], [Inf kmax Inf a0(4) a0(4)], opt);
                 tuple.dir_baseline = a(1);
                 tuple.dir_kappa = a(2);
                 if a(4) > a(5)
