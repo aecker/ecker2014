@@ -1,22 +1,27 @@
-function plotRastersLFP(key, condition, blocks)
+function plotRastersLFP(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window)
 % Plot spike rasters and LFP trace
-%   plotRasters(stimKey, condition, blocks) plots the spike
-%   rasters for a stimulation session given by stimKey using all available
-%   single units. The condition to plot is selected by the scalar input
-%   condition; the input blocks is a two-element vector containing the
-%   first and last block of trials to plot.
+%   plotRasters(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window)
+%
+%   stimKey         primary key (struct) of the stimulation session to use
+%   lfpFilterNum    the lfp_filter_num to use (see ae.LfpFilter)
+%   sortMethodNum   the sort_method_num to use (see sort.Methods)
+%   conditionNum    the condition_num to use (see nc.GratingConditions)
+%   blocks          two-element vector containing the first and last block
+%                   of trials
+%   window          time window relative to stimulus onset
 %
 % AE 2012-03-22
 
-nCond = 16;
-% window = [2500 3500];
-window = [0 2000];
+key = stimKey;
+key.lfp_filter_num = lfpFilterNum;
+key.sort_method_num = sortMethodNum;
 
+nCond = count(nc.GratingConditions(key));
 trialList = sprintf('condition_num = %d AND trial_num BETWEEN %d AND %d', ...
-    condition, nCond * (blocks(1) - 1), nCond * blocks(2));
+    conditionNum, nCond * (blocks(1) - 1), nCond * blocks(2));
 
 rel = (nc.GratingTrials(key) & trialList) * acq.EphysStimulationLink ...
-    * sort.Sets('sort_method_num=2') * ae.SpikesByTrial;
+    * sort.Sets(key) * ae.SpikesByTrial;
 spikes = fetch(rel, 'spikes_by_trial', 'condition_num');
 units = unique([spikes.unit_id]);
 trials = unique([spikes.trial_num]);
@@ -30,17 +35,15 @@ lfp = fetch((nc.GratingTrials(key) & trialList) * ae.LfpByTrial(key), '*');
 lfp = dj.struct.sort(lfp, 'trial_num');
 electrodes = unique([lfp.electrode_num]);
 [Fs, pre] = fetch1(ae.LfpByTrialSet(key), 'lfp_sampling_rate', 'pre_stim_time');
-samples = (window + pre) * Fs / 1000;
+samples = (window + pre) * Fs / 1000 + 1;
 data = arrayfun(@(x) x.lfp_by_trial(samples(1):samples(2)), lfp, 'UniformOutput', false);
 data = reshape([data{:}], [diff(samples)+1, numel(trials), numel(electrodes)]);
-% trialLfp = data(:, :, 1);
 trialLfp = mean(data, 3);
 meanLfp = mean(trialLfp, 2);
 trialLfp = bsxfun(@minus, trialLfp, meanLfp);
 trialLfp = bsxfun(@rdivide, bsxfun(@minus, trialLfp, min(trialLfp)), max(trialLfp) - min(trialLfp));
 tlfp = window(1) + (1:numel(meanLfp)) * 1000 / Fs;
 
-% figure(condition), clf
 cla, hold on
 tuple = 1;
 for i = 1:m
