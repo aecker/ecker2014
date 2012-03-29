@@ -10,6 +10,12 @@ pre_stim_time                       : float         # start of window (ms before
 lfpbytrialset_ts=CURRENT_TIMESTAMP  : timestamp     # automatic timestamp. Do not edit
 %}
 
+% Note: since the times between stimuli are allocated differently to either
+% the next or the previous trial between experiments, we here define the
+% start of the trial via the showStimulus event and include pre_stim_time
+% ms before it. We explicitly don't use the startTrial event for this
+% reason.
+
 classdef LfpByTrialSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('ae.LfpByTrialSet');
