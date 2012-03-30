@@ -63,7 +63,7 @@ populate(nc.UnitPairSet, subject)
 
 
 %% noise correlations
-matlabpool open 4
+matlabpool
 parfor i = 1:12
     parPopulate(ae.SpikeCountSet, ae.Jobs, subject)
     parPopulate(ae.SpikesByTrialSet, ae.Jobs, subject)
