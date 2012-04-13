@@ -9,8 +9,6 @@ classdef OriTuningSet < dj.Relvar & dj.AutoPopulate
 
 	properties(Constant)
 		table = dj.Table('nc.OriTuningSet')
-	end
-	properties
 		popRel = nc.Gratings * ae.SpikesByTrialSet;
 	end
 
