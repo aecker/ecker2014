@@ -15,7 +15,9 @@ classdef UnitPairSet < dj.Relvar & dj.AutoPopulate
         function self = UnitPairSet(varargin)
             self.restrict(varargin{:})
         end
-        
+    end
+
+    methods(Access = protected)
         function makeTuples(this, key)
             insert(this, key);
             units = fetch(ephys.Spikes(key));

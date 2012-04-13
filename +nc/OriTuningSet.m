@@ -18,7 +18,9 @@ classdef OriTuningSet < dj.Relvar & dj.AutoPopulate
 		function self = OriTuningSet(varargin)
 			self.restrict(varargin)
 		end
+    end
 
+    methods(Access = protected)
 		function makeTuples(self, key)
 			insert(self, key)
             contrasts = unique(fetchn(nc.Gratings(key) * nc.GratingConditions, 'contrast'));

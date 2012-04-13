@@ -17,7 +17,9 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
         function self = NoiseCorrelationSet(varargin)
             self.restrict(varargin{:})
         end
-        
+    end
+
+    methods(Access = protected)
         function makeTuples(this, key)
             insert(this, key);
             

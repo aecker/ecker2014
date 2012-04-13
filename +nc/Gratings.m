@@ -22,7 +22,9 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
         function self = Gratings(varargin)
             self.restrict(varargin{:})
         end
-        
+    end
+
+    methods(Access = protected)
         function makeTuples(this, key)
             % Grating session
             tuple = key;
