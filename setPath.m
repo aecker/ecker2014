@@ -8,3 +8,6 @@ for i = 1:numel(d)
     addpath(fullfile(base, d(i).name))
 end
 addpath(base)
+
+% AE ephys lib
+addpath(fullfile(base, '../ephyslib'))
