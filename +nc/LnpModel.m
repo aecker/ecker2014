@@ -39,7 +39,7 @@ classdef LnpModel < dj.Relvar
             self.restrict(varargin{:})
         end
         
-        function makeTuples(this, key)
+        function makeTuples(self, key)
             assert(key.use_lfp == 1, 'Model without LFP not implemented yet!')
             
             [lfpPre, lfpFs] = fetch1(ae.LfpByTrialSet(key), 'pre_stim_time', 'lfp_sampling_rate');
