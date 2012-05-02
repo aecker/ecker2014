@@ -18,7 +18,9 @@ classdef LnpModelSet < dj.Relvar & dj.AutoPopulate
         function self = LnpModelSet(varargin)
             self.restrict(varargin{:})
         end
-        
+    end
+    
+    methods (Access = protected)
         function makeTuples(this, key)
             insert(this, key);
             for unitKey = fetch((this.popRel & key) * ephys.Spikes)'
