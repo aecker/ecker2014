@@ -38,11 +38,9 @@ classdef OriTuning < dj.Relvar
 	methods
 		function self = OriTuning(varargin)
 			self.restrict(varargin)
-		end
-    end
-
-    methods(Access = protected)
-		function makeTuples(self, key)
+        end
+        
+        function makeTuples(self, key)
             fprintf('Unit %d\n', key.unit_id)
             
             % get spike counts by condition
