@@ -1,33 +1,32 @@
+% LNP model with stimulus and LFP as inputs and exponential non-linearity.
+%
+% The model we fit is:
+%   r = exp(a*psi + b*psth + c*lfp + const)
+%
+% where psi = [cos(theta), sin(theta), cos(2*theta), sin(2*theta)] is the
+% tuning curve and psth the temporal structure of the response (which are
+% assumed to factor since they're additive in the exp).
+%
+% bin_size is assumed to be at most 50 ms!
+
 %{
 nc.LnpModel (computed) # Firing rate prediction from LFP
 
 -> nc.LnpModelSet
--> ae.SpikesByTrial
+-> ephys.Spikes
 ---
-ori_phase       : double            # phase of orientation parameter
-ori_mag         : double            # magnitude orientation parameter
-lfp_param       : double            # parameter for lfp dependence
-const_param     : double            # constant parameter
-perc_var        : float             # percent variance explained
+tuning_params   : blob      # parameters for tuning curve (4-by-1)
+psth_params     : blob      # parameters for PSTH (k-by-1)
+lfp_param       : double    # parameter for lfp dependence (scalar)
+const_param     : double    # constant parameter
+lfp_data        : longblob  # filtered LFP
+spike_data      : longblob  # binned spikes
 %}
 
-% NOTE: LFP from tetrode that recorded the neuron is used. I may extend
+% Note: the LFP from tetrode that recorded the neuron is used. I may extend
 %       this to try all LFPs. In this case augment the PK by:
 % electrode_num   : tinyint unsigned  # electrode number
 
-% The model we fit is:
-%   r = exp(a*s + b*x + c)
-%
-% where
-%   stimlus:    s = [cos(theta), sin(theta)]
-%   LFP:        x
-%
-%   ori_phase = atan2(a)
-%   ori_mag = norm(a)
-%   lfp_param = b
-%   const_param = c
-%
-% If use_lfp = false the LFP term is ignored.
 
 classdef LnpModel < dj.Relvar
     properties(Constant)
@@ -40,54 +39,104 @@ classdef LnpModel < dj.Relvar
         end
         
         function makeTuples(self, key)
-            assert(key.use_lfp == 1, 'Model without LFP not implemented yet!')
             
-            [lfpPre, lfpFs] = fetch1(ae.LfpByTrialSet(key), 'pre_stim_time', 'lfp_sampling_rate');
-            [winStart, winEnd] = fetch1(nc.LnpModelSet(key), 'win_start', 'win_end');
-            t = (winStart:winEnd)';
-            nBins = numel(t);
+            % parameters
+            lowpass = [5 10]; % cutoff (Hz)
+            tol = 1e-5;
+            assert(1000 / key.bin_size > 2 * lowpass(2), 'Bin size too large for lowpass cutoff. Aliasing...!');
             
-            rel = (stimulation.StimTrials * nc.GratingTrials * ae.SpikesByTrial * ae.LfpByTrial * ephys.Spikes) & key & 'valid_trial = true';
-            [spikes, condition, lfp] = fetchn(rel, 'spikes_by_trial', 'condition_num', 'lfp_by_trial');
+            % read LFP
+            tetrode = fetch1(ephys.Spikes(key), 'electrode_num');
+            lfpFile = fetch1(cont.Lfp(key), 'lfp_file');
+            br = baseReader(getLocalPath(lfpFile), sprintf('t%d', tetrode));
+            lfp = br(:, 1);
             
-            % extract LFP in window of interest
-            minSamples = min(cellfun(@numel, lfp));
-            tlfp = (0:minSamples-1)' * 1000 / lfpFs - lfpPre;
-            lfp = cellfun(@(x) interp1q(tlfp, x, t), lfp, 'UniformOutput', false);
-            lfp = [lfp{:}];
+            % design filter for lowpass & downsampling
+            Fs = getSamplingRate(br);
+            decimation = Fs / 1000 * key.bin_size;
+            assert(rem(decimation + tol, 1) < 2 * tol, 'Bin size must be multiple of sampling period!')
+            decimation = round(decimation);
+            params = firpmord(lowpass, [1 0], [0.1 0.01], Fs, 'cell');
+            filt = firpm(params{:});
+            delay = numel(filt) / 2;
+            pad = ceil(ceil(delay / decimation) * decimation - decimation / 2);
 
-            % compute mean lfp for each stimulus
-            uCond = unique(condition);
-            nCond = numel(uCond);
-            meanLfp = zeros(nBins, nCond);
-            for i = 1:nCond
-                meanLfp(:, i) = mean(lfp(:, condition == uCond(i)), 2);
-            end
+            % get spikes
+            showStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time'));
+            endStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "endStimulus"', 'event_time'));
+            spikeTimes = fetch1(ephys.Spikes(key), 'spike_times');
+            spikeTimes = spikeTimes(spikeTimes > showStim(1) & spikeTimes < endStim(end) + 5000);
+            nSpikes = numel(spikeTimes);
             
-            nTrials = numel(spikes);
-            X = zeros(nBins * nTrials, nCond + 1);
-            S = zeros(nBins * nTrials, 1);
-            for i = 1:nTrials
-                % compute input vector
-                stimulus = zeros(nBins, nCond);
-                stimulus(:, condition(i)) = 1;
-                trialLfp = lfp(:, i) - meanLfp(:, condition(i));
-                bins = nBins * (i - 1) + (1:nBins);
-                X(bins, :) = [stimulus, trialLfp];
+            % trials & conditions
+            trials = fetch(nc.GratingTrials(key) * nc.GratingConditions, 'direction');
+            trials = dj.struct.sort(trials, 'trial_num');
+            nTrials = numel(trials);
+            conditions = [trials.condition_num];
+            nCond = numel(unique(conditions));
+
+            nBins = fix(fetch1(nc.Gratings(key), 'stimulus_time') / key.bin_size);
+            binSize = key.bin_size;
+            trialLfp = zeros(nBins, nTrials);
+            trialSpikes = zeros(nBins, nTrials);
+            iSpike = 1;
+
+            % TEMP
+            ppsth = zeros(nBins, 16);
+            
+            for iTrial = 1 : nTrials
+    
+                % extract lfp for this trial (samples are centered within bins)
+                firstSample = getSampleIndex(br, showStim(iTrial)) - pad;
+                lastSample = firstSample + nBins * decimation + 2 * pad;
+                temp = resample(lfp(firstSample : lastSample + 1), 1, decimation, filt);
+                trialLfp(:, iTrial) = temp(ceil(pad / decimation) + (1 : nBins));
                 
-                % spikes
-                s = spikes{i};
-                S(bins(1) + fix(s(s > winStart & s < winEnd) - winStart)) = 1;
+                % bin spikes
+                while iSpike <= nSpikes && spikeTimes(iSpike) < showStim(iTrial)
+                    iSpike = iSpike + 1;
+                end
+                for iBin = 1 : nBins
+                    until = showStim(iTrial) + iBin * binSize;
+                    curSpike = iSpike;
+                    while iSpike < nSpikes && spikeTimes(iSpike) < until
+                        iSpike = iSpike + 1;
+                    end
+                    trialSpikes(iBin, iTrial) = iSpike - curSpike;
+                    ppsth(iBin, conditions(iTrial)) = ppsth(iBin, conditions(iTrial)) + iSpike - curSpike;
+                end
             end
             
-            % CHECKME
-            b = glmfit(X, S, 'binomial', 'link', 'log', 'constant', 'off');
-           
+            % subtract stimulus-evoked LFP component
+            for i = 1 : nCond
+                ndx = conditions == i;
+                trialLfp(:, ndx) = bsxfun(@minus, trialLfp(:, ndx), mean(trialLfp(:, ndx), 2));
+            end
             
-            % TODO: insert into db
+            % create stimulus matrix
+            direction = [trials.direction] / 180 * pi;
+            stim = repmat(direction, nBins, 1);
+            stim = [cos(stim(:)), sin(stim(:)), cos(2 * stim(:)), sin(2 * stim(:))];
             
-            % TODO: think about how to evaluate variance explained
+            % create PSTH basis function matrix
+            nBasisFunc = 20;
+            psth = fetch1(nc.PsthBasis('use_log = false'), 'psth_eigenvectors');
+            psth = psth(1 : nBins, 1 : nBasisFunc);
+            psth = repmat(psth, nTrials, 1);
             
+            % fit GLM
+            X = [stim, psth, trialLfp(:)];
+            w = glmfit(X, trialSpikes(:), 'poisson');
+            
+            % insert into db
+            tuple = key;
+            tuple.tuning_params = w(2:5);
+            tuple.psth_params = w(5 + (1 : nBasisFunc));
+            tuple.lfp_param = w(end);
+            tuple.const_param = w(1);
+            tuple.lfp_data = trialLfp;
+            tuple.spike_data = trialSpikes;
+            self.insert(tuple);
         end
     end
 end
