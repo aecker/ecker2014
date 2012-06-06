@@ -1,11 +1,13 @@
 % LNP model with stimulus and LFP as inputs and exponential non-linearity.
 %
 % The model we fit is:
-%   r = exp(a*psi + b*psth + c*lfp + const)
+%   r = exp(b*psth + c*lfp + const)
 %
-% where psi = [cos(theta), sin(theta), cos(2*theta), sin(2*theta)] is the
-% tuning curve and psth the temporal structure of the response (which are
-% assumed to factor since they're additive in the exp).
+% where psth is a set of temporal basis functions to predict the PSTHs.
+% Rather than assuming a parametric form for the tuning curve and/or
+% separability of direction and time, we model the PSTH for each condition
+% individually (by zeroing the basis functions of all stimuli other than
+% the one shown on the given trial).
 %
 % bin_size is assumed to be at most 50 ms!
 
@@ -15,10 +17,8 @@ nc.LnpModel (computed) # Firing rate prediction from LFP
 -> nc.LnpModelSet
 -> ephys.Spikes
 ---
-tuning_params   : blob      # parameters for tuning curve (4-by-1)
-psth_params     : blob      # parameters for PSTH (k-by-1)
+params          : blob      # all parameters (#conditions x #basisfun + 1)
 lfp_param       : double    # parameter for lfp dependence (scalar)
-const_param     : double    # constant parameter
 lfp_data        : longblob  # filtered LFP
 spike_data      : longblob  # binned spikes
 %}
@@ -113,27 +113,25 @@ classdef LnpModel < dj.Relvar
                 trialLfp(:, ndx) = bsxfun(@minus, trialLfp(:, ndx), mean(trialLfp(:, ndx), 2));
             end
             
-            % create stimulus matrix
-            direction = [trials.direction] / 180 * pi;
-            stim = repmat(direction, nBins, 1);
-            stim = [cos(stim(:)), sin(stim(:)), cos(2 * stim(:)), sin(2 * stim(:))];
-            
-            % create PSTH basis function matrix
-            nBasisFunc = 20;
-            psth = fetch1(nc.PsthBasis('use_log = false'), 'psth_eigenvectors');
-            psth = psth(1 : nBins, 1 : nBasisFunc);
-            psth = repmat(psth, nTrials, 1);
+            % create stimulus (PSTH) basis function matrix
+            nBasisFun = 10;
+            psth = fetch1(nc.PsthBasis(key), 'psth_eigenvectors');
+            psth = [ones(nBins, 1), psth(1 : nBins, 1 : nBasisFun - 1)];
+            stim = zeros(nTrials * nBins, nBasisFun * nCond);
+            for iTrial = 1 : nTrials
+                iRows = nBins * (iTrial - 1) + (1 : nBins);
+                iCols = nBasisFun * (conditions(iTrial) - 1) + (1 : nBasisFun);
+                stim(iRows, iCols) = psth;
+            end
             
             % fit GLM
-            X = [stim, psth, trialLfp(:)];
-            w = glmfit(X, trialSpikes(:), 'poisson');
+            X = [stim, trialLfp(:)];
+            w = glmfit(X, trialSpikes(:), 'poisson', 'constant', 'off');
             
             % insert into db
             tuple = key;
-            tuple.tuning_params = w(2:5);
-            tuple.psth_params = w(5 + (1 : nBasisFunc));
+            tuple.params = w;
             tuple.lfp_param = w(end);
-            tuple.const_param = w(1);
             tuple.lfp_data = trialLfp;
             tuple.spike_data = trialSpikes;
             self.insert(tuple);
