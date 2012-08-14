@@ -11,3 +11,6 @@ addpath(base)
 
 % AE ephys lib
 addpath(fullfile(base, '../ephyslib'))
+
+% spike sorting lib (Kalman filter model)
+addpath(fullfile(base, '../../moksm'))
