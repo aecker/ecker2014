@@ -6,8 +6,9 @@
 % key.subject_id = 11;
 % key.sort_method_num = 2;
 % key.spike_count_end = 2000;
-key = 'subject_id IN (9, 11) AND sort_method_num = 2 AND spike_count_end = 2000';
-excludePairs = nc.UnitPairMembership & (ephys.SingleUnit(key) & 'fp + fn > 0.05');
+% key = 'subject_id IN (9, 11) AND sort_method_num = 5 AND spike_count_end = 500';
+key = struct('subject_id', {9 11}, 'sort_method_num', 5, 'spike_count_end', 500);
+excludePairs = nc.UnitPairMembership(key) & ((ephys.SingleUnit(key) & 'fp + fn > 0.1') + (nc.UnitStats(key) & 'stability > 0.1'));
 stimKeys = fetch(acq.Stimulation & nc.NoiseCorrelations(key));
 n = numel(stimKeys);
 rr = cell(1, n);
