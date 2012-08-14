@@ -113,19 +113,8 @@ classdef LnpModel < dj.Relvar
                 trialLfp(:, ndx) = bsxfun(@minus, trialLfp(:, ndx), mean(trialLfp(:, ndx), 2));
             end
             
-            % create stimulus (PSTH) basis function matrix
-            nBasisFun = 10;
-            psth = fetch1(nc.PsthBasis(key), 'psth_eigenvectors');
-            psth = [ones(nBins, 1), psth(1 : nBins, 1 : nBasisFun - 1)];
-            stim = zeros(nTrials * nBins, nBasisFun * nCond);
-            for iTrial = 1 : nTrials
-                iRows = nBins * (iTrial - 1) + (1 : nBins);
-                iCols = nBasisFun * (conditions(iTrial) - 1) + (1 : nBasisFun);
-                stim(iRows, iCols) = psth;
-            end
-            
-            % fit GLM
-            X = [stim, trialLfp(:)];
+            % FIT GLM
+            X = [self.stimMatrix(key), trialLfp(:)];
             w = glmfit(X, trialSpikes(:), 'poisson', 'constant', 'off');
             
             % insert into db
@@ -135,6 +124,36 @@ classdef LnpModel < dj.Relvar
             tuple.lfp_data = trialLfp;
             tuple.spike_data = trialSpikes;
             self.insert(tuple);
+        end
+        
+        function X = designMatrix(self)
+            assert(count(self) == 1, 'Relvar must be scalar!')
+            stim = nc.LnpModel.stimMatrix(fetch(self));
+            lfp = fetch1(self, 'lfp_data');
+            X = [stim, lfp(:)];
+        end
+    end
+    
+    methods (Access = private, Static)
+        function stim = stimMatrix(key)
+            % trials & conditions
+            trials = fetch(nc.GratingTrials(key) * nc.GratingConditions, 'direction');
+            trials = dj.struct.sort(trials, 'trial_num');
+            nTrials = numel(trials);
+            conditions = [trials.condition_num];
+            nCond = numel(unique(conditions));
+            nBins = fix(fetch1(nc.Gratings(key), 'stimulus_time') / key.bin_size);
+            
+            % create stimulus (PSTH) basis function matrix
+            nBasisFun = 10;
+            psth = fetch1(nc.PsthBasis(key), 'psth_eigenvectors');
+            psth = [ones(nBins, 1), psth(1 : nBins, 1 : nBasisFun - 1)];
+            stim = zeros(nTrials * nBins, nBasisFun * nCond);
+            for iTrial = 1 : nTrials
+                iRows = nBins * (iTrial - 1) + (1 : nBins);
+                iCols = nBasisFun * (conditions(iTrial) - 1) + (1 : nBasisFun);
+                stim(iRows, iCols) = psth;
+            end            
         end
     end
 end
