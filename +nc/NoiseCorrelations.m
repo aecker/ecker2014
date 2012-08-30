@@ -5,7 +5,6 @@ nc.NoiseCorrelations (computed) # Noise correlations
 -> nc.UnitPairs
 ---
 r_noise_avg = NULL : double # average noise correlation
-r_noise_cond       : BLOB   # noise correlation per condition
 %}
 
 classdef NoiseCorrelations < dj.Relvar
