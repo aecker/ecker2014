@@ -1,7 +1,7 @@
 % Processing my anesthetized noise correlation data
 % AE 2012-02-14
 
-restriction = 'subject_id in (9, 11) and sort_method_num = 5';
+restriction = 'subject_id in (8, 9, 11, 23) and sort_method_num = 5';
 
 % create spike detection and sorting jobs
 ephysKeys = fetch(acq.Ephys(restriction) & acq.EphysStimulationLink);
@@ -42,6 +42,7 @@ populate(detect.Sets, restriction);
 % manually create sort.Params tuples and insert
 populate(sort.Sets, 'sort_method_num = 5', restriction)
 
+addpath ~/lab/libraries/various/mex_tt
 matlabpool
 parfor i = 1:12
     parPopulate(sort.KalmanAutomatic, sort.Jobs, restriction)
