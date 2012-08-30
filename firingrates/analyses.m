@@ -3,8 +3,8 @@
 
 key = struct('subject_id', {9 11}, 'sort_method_num', 5, 'spike_count_end', 500);
 excludePairs = nc.UnitPairMembership(key) & ((ephys.SingleUnit(key) & 'fp + fn > 0.1') + (nc.UnitStats(key) & 'stability > 0.1'));
-excludePairs = nc.UnitPairMembership(key) & ((ephys.SingleUnit(key) & 'fp + fn > 0.1'));
-[fr, r] = fetchn((nc.NoiseCorrelations(key) * nc.PairStats) - excludePairs, 'geom_mean_rate', 'r_noise_avg');
+% excludePairs = nc.UnitPairMembership(key) & ((ephys.SingleUnit(key) & 'fp + fn > 1'));
+[r, fr, d, rs] = fetchn((nc.NoiseCorrelations(key) * nc.PairStats) - excludePairs, 'r_noise_avg', 'geom_mean_rate', 'distance', 'r_signal');
 
 
 %% plots
