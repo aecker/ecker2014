@@ -86,6 +86,7 @@ parfor i = 1:12
     parPopulate(nc.OriTuningSet, nc.Jobs, restriction)
     parPopulate(nc.NoiseCorrelationSet, nc.Jobs, restriction)
     parPopulate(nc.UnitStatsSet, nc.Jobs, restriction)
+    parPopulate(nc.PairStatsSet, nc.Jobs, restriction)
 end
 matlabpool close
 
