@@ -10,7 +10,11 @@ end
 addpath(base)
 
 % AE ephys lib
-addpath(fullfile(base, '../ephyslib'))
+old = cd(fullfile(base, '../ephyslib'));
+addpath(pwd)
 
 % spike sorting lib (Kalman filter model)
-addpath(fullfile(base, '../../moksm'))
+cd(fullfile(base, '../../moksm'))
+addpath(pwd)
+
+cd(old)
