@@ -47,11 +47,12 @@ classdef OriTuning < dj.Relvar
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
             rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) ...
                 * nc.GratingTrials(key) * nc.GratingConditions(key);
-            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [0 stimTime], 'direction / 180 * pi() -> direction');
+            nDir = count(stimulation.StimConditions(key));
+            minTrials = fix(count(rel) / nDir);
+            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [0 stimTime], 'direction / 180 * pi() -> direction', nDir * minTrials);
             spikes = dj.struct.sort(spikes, 'direction');
             directions = [spikes.direction];
             uDir = unique(directions);
-            nDir = numel(uDir);
             rate = reshape([spikes.spike_count], [], nDir) / stimTime * 1000;
             meanRate = mean(rate, 1);
             
@@ -60,16 +61,20 @@ classdef OriTuning < dj.Relvar
                 case 'AcuteGratingExperiment'
                     pauseTime = getfield(fetch1(stimulation.StimTrialGroup(key), 'stim_constants'), 'pauseTime'); %#ok
                     delay = 300;
-                    fix = ae.SpikesByTrial.spikeCount(rel, [stimTime + delay, stimTime + pauseTime(1)]);
-                    fix = fix / (pauseTime(1) - delay) * 1000;
-                case 'GratingExperiment'
+                    fixation = ae.SpikesByTrial.spikeCount(rel, [stimTime + delay, stimTime + pauseTime(1)]);
+                    fixation = fixation / (pauseTime(1) - delay) * 1000;
+                case {'mgrad', 'movgrad'}
+                    fixTime = getConstant(stimulation.StimTrialGroup(key), 'holdFixationTime');
+                    fixation = ae.SpikesByTrial.spikeCount(rel, [-fixTime, 0]);
+                    fixation = fixation / fixTime * 1000;
+                otherwise
                     error('TODO')
             end
             
             % test for visual responsiveness (adjust for multiple comp).
             p = zeros(nDir, 1);
             for i = 1:nDir
-                p(i) = ttest2(fix, rate(:, i));
+                p(i) = ttest2(fixation, rate(:, i));
             end
             tuple = key;
             tuple.vis_resp_p = min(1, min(p) * nDir);
