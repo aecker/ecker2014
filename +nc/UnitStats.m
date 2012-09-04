@@ -32,9 +32,10 @@ classdef UnitStats < dj.Relvar
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
             preStimTime = fetch1(ae.SpikesByTrialSet(key), 'pre_stim_time');
             rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) * nc.GratingTrials(key);
-            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [-preStimTime, stimTime], 'condition_num');
+            nCond = count(stimulation.StimConditions(key));
+            minTrials = fix(count(rel) / nCond);
+            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [-preStimTime, stimTime], 'condition_num', minTrials * nCond);
             spikes = dj.struct.sort(spikes, 'condition_num');
-            nCond = numel(unique([spikes.condition_num]));
             counts = reshape([spikes.spike_count], [], nCond);
             R = corrcoef(counts);
             tuple.stability = nanmean(R(~tril(ones(size(R)))));
