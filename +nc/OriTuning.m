@@ -81,7 +81,7 @@ classdef OriTuning < dj.Relvar
             
             % orientation tuning curve
             [~, maxOri] = max(meanRate);
-            a0 = [min(meanRate), 2, uDir(maxOri), log(max(meanRate) - min(meanRate))];
+            a0 = [min(meanRate), 2, uDir(maxOri), log(max(meanRate) - min(meanRate) + 0.01)];
             wmin = 0.8 * min(diff(uDir));
             kmax = log(1/2) / (cos(wmin) - 1);
             opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
