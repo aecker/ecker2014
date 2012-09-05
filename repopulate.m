@@ -24,7 +24,7 @@ populate(detect.Sets, restriction);
 % run ~/lab/libraries/various/spider/use_spider.m
 % matlabpool
 % parfor i = 1:12
-%     parPopulate(sort.TetrodesMoGAutomatic, sort.Jobs, subject)
+%     parpopulate(sort.TetrodesMoGAutomatic, subject)
 % end
 % matlabpool close
 % 
@@ -45,7 +45,7 @@ populate(sort.Sets, 'sort_method_num = 5', restriction)
 addpath ~/lab/libraries/various/mex_tt
 matlabpool
 parfor i = 1:12
-    parPopulate(sort.KalmanAutomatic, sort.Jobs, restriction)
+    parpopulate(sort.KalmanAutomatic, restriction)
 end
 matlabpool close
 
@@ -80,16 +80,16 @@ populate(nc.UnitPairSet, restriction)
 
 
 %% noise correlations
-matlabpool
+% matlabpool
 parfor i = 1:12
-    parPopulate(ae.SpikeCountSet, ae.Jobs, restriction)
-    parPopulate(ae.SpikesByTrialSet, ae.Jobs, restriction)
-    parPopulate(nc.OriTuningSet, nc.Jobs, restriction)
-    parPopulate(nc.NoiseCorrelationSet, nc.Jobs, restriction)
-    parPopulate(nc.UnitStatsSet, nc.Jobs, restriction)
-    parPopulate(nc.PairStatsSet, nc.Jobs, restriction)
+    parpopulate(ae.SpikeCountSet, restriction)
+    parpopulate(ae.SpikesByTrialSet, restriction)
+    parpopulate(nc.OriTuningSet, restriction)
+    parpopulate(nc.NoiseCorrelationSet, restriction)
+    parpopulate(nc.UnitStatsSet, restriction)
+    parpopulate(nc.PairStatsSet, restriction)
 end
-matlabpool close
+% matlabpool close
 
 % stimulus
 
