@@ -1,6 +1,6 @@
-function plotRastersLFP(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window)
+function plotRastersLFP(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window, rmLine)
 % Plot spike rasters and LFP trace
-%   plotRasters(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window)
+%   plotRasters(stimKey, lfpFilterNum, sortMethodNum, conditionNum, blocks, window, rmLine)
 %
 %   stimKey         primary key (struct) of the stimulation session to use
 %   lfpFilterNum    the lfp_filter_num to use (see ae.LfpFilter)
@@ -9,8 +9,15 @@ function plotRastersLFP(stimKey, lfpFilterNum, sortMethodNum, conditionNum, bloc
 %   blocks          two-element vector containing the first and last block
 %                   of trials
 %   window          time window relative to stimulus onset
+%   rmLine          remove line noise? 
+%                       * non-zero frequency values indicate yes
+%                       * absolute value indicates frequency of power line
+%                       * positive value: project out line noise
+%                       * negative value: use notch filter
 %
 % AE 2012-03-22
+
+if nargin < 7, rmLine = 0; end
 
 key = stimKey;
 key.lfp_filter_num = lfpFilterNum;
@@ -19,9 +26,9 @@ key.sort_method_num = sortMethodNum;
 nCond = count(nc.GratingConditions(key));
 trialList = sprintf('condition_num = %d AND trial_num BETWEEN %d AND %d', ...
     conditionNum, nCond * (blocks(1) - 1), nCond * blocks(2));
+trialRel = nc.GratingTrials(key) & trialList & stimulation.StimTrials('valid_trial = true');
 
-rel = (nc.GratingTrials(key) & trialList) * acq.EphysStimulationLink ...
-    * sort.Sets(key) * ae.SpikesByTrial;
+rel = trialRel * acq.EphysStimulationLink * sort.Sets(key) * ae.SpikesByTrial;
 spikes = fetch(rel, 'spikes_by_trial', 'condition_num');
 units = unique([spikes.unit_id]);
 trials = unique([spikes.trial_num]);
@@ -31,14 +38,33 @@ m = numel(trials);
 n = numel(units);
 ylbl = 'Trials';
 
-lfp = fetch((nc.GratingTrials(key) & trialList) * ae.LfpByTrial(key), '*');
-lfp = dj.struct.sort(lfp, 'trial_num');
+lfp = fetch(trialRel * ae.LfpByTrial(key), '*');
+lfp = dj.struct.sort(lfp, {'electrode_num', 'trial_num'});
 electrodes = unique([lfp.electrode_num]);
 [Fs, pre] = fetch1(ae.LfpByTrialSet(key), 'lfp_sampling_rate', 'pre_stim_time');
-samples = (window + pre) * Fs / 1000 + 1;
+samples = round((window + pre) * Fs / 1000 + 1);
 data = arrayfun(@(x) x.lfp_by_trial(samples(1):samples(2)), lfp, 'UniformOutput', false);
 data = reshape([data{:}], [diff(samples)+1, numel(trials), numel(electrodes)]);
 trialLfp = mean(data, 3);
+
+% get rid of line noise
+if rmLine
+    if rmLine > 0
+        N = size(trialLfp, 1);
+        for harmonic = [1 3]
+            q = exp(1i * (0 : N - 1)' / Fs * 2 * pi * rmLine * harmonic);
+            q = q / norm(q);
+            p = q' * trialLfp;
+            lineNoise = q * p;
+            trialLfp = trialLfp - (lineNoise + conj(lineNoise));
+        end
+    else
+        wo = abs(rmLine) / Fs * 2;
+        [b, a] = iirnotch(wo, wo / 20);
+        trialLfp = filtfilt(b, a, trialLfp);
+    end
+end
+
 meanLfp = mean(trialLfp, 2);
 trialLfp = bsxfun(@minus, trialLfp, meanLfp);
 trialLfp = bsxfun(@rdivide, bsxfun(@minus, trialLfp, min(trialLfp)), max(trialLfp) - min(trialLfp));
