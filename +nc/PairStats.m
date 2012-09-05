@@ -30,6 +30,9 @@ classdef PairStats < dj.Relvar
             tuple.min_rate = mean(min(rates, [], 1));
             tuple.diff_pref_ori = abs(angle(exp(2i * (pref(1) - pref(2))))) / 2;
             tuple.r_signal = corr(rates(1, :)', rates(2, :)');
+            if isnan(tuple.r_signal) % i.e. at least one cell no spikes 
+                tuple.r_signal = 0;
+            end
             tuple.distance = sqrt(diff(x).^2 + diff(y).^2);
             self.insert(tuple);
         end

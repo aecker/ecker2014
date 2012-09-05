@@ -39,6 +39,9 @@ classdef UnitStats < dj.Relvar
             counts = reshape([spikes.spike_count], [], nCond);
             R = corrcoef(counts);
             tuple.stability = nanmean(R(~tril(ones(size(R)))));
+            if isnan(tuple.stability) % i.e. no spikes at all
+                tuple.stability = 1;
+            end
             
             % Mean firing rate. Here we use the window of interest for the
             % analysis, defined by the SpikeCounts table
