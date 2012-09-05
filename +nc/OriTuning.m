@@ -47,7 +47,7 @@ classdef OriTuning < dj.Relvar
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
             rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) ...
                 * nc.GratingTrials(key) * nc.GratingConditions(key);
-            nDir = count(stimulation.StimConditions(key));
+            nDir = count(nc.GratingConditions(key));
             minTrials = fix(count(rel) / nDir);
             spikes = ae.SpikesByTrial.spikeCountStruct(rel, [0 stimTime], 'direction / 180 * pi() -> direction', nDir * minTrials);
             spikes = dj.struct.sort(spikes, 'direction');
