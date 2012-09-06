@@ -64,14 +64,14 @@ classdef LnpModel < dj.Relvar
             pad = round(N * decq / decp);
             
             % get spikes
-            showStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time'));
-            endStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "endStimulus"', 'event_time'));
+            validTrials = stimulation.StimTrials(key) & 'valid_trial = true';
+            showStim = sort(fetchn(stimulation.StimTrialEvents(validTrials) & 'event_type = "showStimulus"', 'event_time'));
             spikeTimes = fetch1(ephys.Spikes(key), 'spike_times');
-            spikeTimes = spikeTimes(spikeTimes > showStim(1) & spikeTimes < endStim(end) + 5000);
+            spikeTimes = spikeTimes(spikeTimes > showStim(1) & spikeTimes < showStim(end) + 5000);
             nSpikes = numel(spikeTimes);
             
             % trials & conditions
-            trials = fetch(nc.GratingTrials(key) * nc.GratingConditions, 'direction');
+            trials = fetch(nc.GratingTrials(validTrials) * nc.GratingConditions);
             trials = dj.struct.sort(trials, 'trial_num');
             nTrials = numel(trials);
             conditions = [trials.condition_num];
@@ -144,7 +144,8 @@ classdef LnpModel < dj.Relvar
             %   the PSTHs (see nc.PsthBasis)
             
             % trials & conditions
-            trials = fetch(nc.GratingTrials(key) * nc.GratingConditions, 'direction');
+            validTrials = stimulation.StimTrials(key) & 'valid_trial = true';
+            trials = fetch(nc.GratingTrials(validTrials) * nc.GratingConditions);
             trials = dj.struct.sort(trials, 'trial_num');
             nTrials = numel(trials);
             conditions = [trials.condition_num];
