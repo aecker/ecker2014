@@ -9,6 +9,7 @@ nc.PsthBasis (computed) # Basis set for PSTHs based on PCA
 
 -> nc.PsthParams
 use_log             : boolean       # use log-PSTH?
+-> nc.PsthBasisParams
 ---
 psth_eigenvectors   : longblob      # eigenvectors
 psth_eigenvalues    : longblob      # eigenvalues
@@ -17,7 +18,7 @@ psth_eigenvalues    : longblob      # eigenvalues
 classdef PsthBasis < dj.Relvar & dj.AutoPopulate
     properties (Constant)
         table = dj.Table('nc.PsthBasis');
-        popRel = nc.PsthParams;
+        popRel = nc.PsthParams * nc.PsthBasisParams;
     end
     
     methods 
@@ -29,8 +30,8 @@ classdef PsthBasis < dj.Relvar & dj.AutoPopulate
     methods (Access = protected)
         function makeTuples(self, key)
             % check if all PSTHs are populated
-            stimSessions = ae.ProjectsStimulation('project_name = "NoiseCorrAnesthesia"');
-            psthSets = nc.PsthSet(key) & 'sort_method_num = 2'; % single units
+            stimSessions = ae.ProjectsStimulation('project_name = "NoiseCorrAnesthesia"') & nc.Gratings(struct('stimulus_time', key.stimulus_time));
+            psthSets = nc.PsthSet(key) & 'sort_method_num = 5'; % single units
             if count(stimSessions - psthSets) ...
                 && ~strncmpi('y', input('Not all PSTHs are populated. Continue?\n[y/n] > ', 's'), 1)
                 return
