@@ -11,7 +11,8 @@ nc.LnpModelSet (computed) # Firing rate prediction from LFP
 classdef LnpModelSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.LnpModelSet');
-        popRel = cont.Lfp * nc.Gratings * ae.SpikesByTrialSet * nc.PsthBasis('use_log = false');
+        popRel = nc.PsthBasis('use_log = false and use_zscores = true') * ...
+            cont.Lfp * nc.Gratings * ae.SpikesByTrialSet;
     end
     
     methods 
