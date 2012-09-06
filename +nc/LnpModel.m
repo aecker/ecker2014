@@ -153,7 +153,7 @@ classdef LnpModel < dj.Relvar
             nBins = fix(fetch1(nc.Gratings(key), 'stimulus_time') / key.bin_size);
             
             % create stimulus (PSTH) basis function matrix
-            nBasisFun = 10;
+            nBasisFun = 5;
             psth = fetch1(nc.PsthBasis(key), 'psth_eigenvectors');
             psth = [ones(nBins, 1), psth(1 : nBins, 1 : nBasisFun - 1)];
             stim = zeros(nTrials * nBins, nBasisFun * nCond);
