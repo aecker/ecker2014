@@ -8,8 +8,9 @@
 nc.PsthBasis (computed) # Basis set for PSTHs based on PCA
 
 -> nc.PsthParams
-use_log             : boolean       # use log-PSTH?
 -> nc.PsthBasisParams
+use_log             : boolean       # use log-PSTH?
+use_zscores         : boolean       # convert to z-scores before doing PCA?
 ---
 psth_eigenvectors   : longblob      # eigenvectors
 psth_eigenvalues    : longblob      # eigenvalues
@@ -43,36 +44,43 @@ classdef PsthBasis < dj.Relvar & dj.AutoPopulate
             psths = cellfun(@(x) x(1 : nBins, :), psths, 'UniformOutput', false);
             psths = [psths{:}]';
             
-            for useLog = [false true]
-                
-                % log transform (set minimum baseline to avoid outliers with
-                % large negative logs when cells fire few spikes)
-                if useLog
-                    base = log(key.bin_size / 1000);  % mininum: 1 spike/s
-                    X = log(psths);
-                    X(X < base) = base;
-                else
-                    X = psths;
+            for useLog = [0 1]
+                for useZScores = [0 1]
+                    
+                    % log transform (set minimum baseline to avoid outliers with
+                    % large negative logs when cells fire few spikes)
+                    if useLog
+                        base = log(key.bin_size / 1000);  % mininum: 1 spike/s
+                        X = log(psths);
+                        X(X < base) = base;
+                    else
+                        X = psths;
+                    end
+                    
+                    if useZScores
+                        X = zscore(X, [], 2);
+                    else
+                        % subtract temporal mean from each PSTH (we're interested in
+                        % the temporal dynamics, not the absolute level
+                        X = bsxfun(@minus, X, mean(X, 2));
+                    end
+                    
+                    % PCA
+                    [V, D] = eig(cov(X));
+                    
+                    % insert into db
+                    key.use_log = useLog;
+                    key.use_zscores = useZScores;
+                    tuple = key;
+                    tuple.psth_eigenvectors = fliplr(V);
+                    tuple.psth_eigenvalues = flipud(diag(D));
+                    self.insert(tuple);
+                    
+                    % insert used PSTH sets into membership table
+                    tuples = fetch((self & key) * psthSets);
+                    [tuples.use_log] = deal(useLog);
+                    insert(nc.PsthBasisMembership, tuples);
                 end
-                
-                % subtract temporal mean from each PSTH (we're interested in
-                % the temporal dynamics, not the absolute level
-                X = bsxfun(@minus, X, mean(X, 2));
-                
-                % PCA
-                [V, D] = eig(cov(X));
-                
-                % insert into db
-                tuple = key;
-                tuple.use_log = useLog;
-                tuple.psth_eigenvectors = fliplr(V);
-                tuple.psth_eigenvalues = flipud(diag(D));
-                self.insert(tuple);
-                
-                % insert used PSTH sets into membership table
-                tuples = fetch(psthSets);
-                [tuples.use_log] = deal(useLog);
-                insert(nc.PsthBasisMembership, tuples);
             end
         end
     end
