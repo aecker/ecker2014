@@ -84,7 +84,7 @@ classdef LnpModel < dj.Relvar
             iSpike = 1;
 
             % TEMP
-            ppsth = zeros(nBins, 16);
+            ppsth = zeros(nBins, nCond);
             
             for iTrial = 1 : nTrials
     
