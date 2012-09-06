@@ -41,9 +41,9 @@ classdef LnpModel < dj.Relvar
         function makeTuples(self, key)
             
             % parameters
-            lowpass = [5 10]; % cutoff (Hz)
-            tol = 1e-5;
-            assert(1000 / key.bin_size > 2 * lowpass(2), 'Bin size too large for lowpass cutoff. Aliasing...!');
+            lowpass = 10; % cutoff (Hz)
+            tol = 1e-4;
+            assert(1000 / key.bin_size > 2 * lowpass, 'Bin size too large for lowpass cutoff. Aliasing...!');
             
             % read LFP
             tetrode = fetch1(ephys.Spikes(key), 'electrode_num');
@@ -51,16 +51,18 @@ classdef LnpModel < dj.Relvar
             br = baseReader(getLocalPath(lfpFile), sprintf('t%d', tetrode));
             lfp = br(:, 1);
             
-            % design filter for lowpass & downsampling
+            % determine resampling factors
             Fs = getSamplingRate(br);
-            decimation = Fs / 1000 * key.bin_size;
-            assert(rem(decimation + tol, 1) < 2 * tol, 'Bin size must be multiple of sampling period!')
-            decimation = round(decimation);
-            params = firpmord(lowpass, [1 0], [0.1 0.01], Fs, 'cell');
-            filt = firpm(params{:});
-            delay = numel(filt) / 2;
-            pad = ceil(ceil(delay / decimation) * decimation - decimation / 2);
-
+            [decp, decq] = rat(1000 / Fs / key.bin_size, tol);
+            
+            % design filter for lowpass & downsampling
+            N = 10;  % filter order
+            bta = 5; % design parameter for Kaiser window LPF
+            fc = lowpass / (Fs * decp / 2);
+            L = 2 * N * decq + 1;
+            filt = decp * firls(L - 1, [0 fc fc 1], [1 1 0 0]) .* kaiser(L, bta)';
+            pad = round(N * decq / decp);
+            
             % get spikes
             showStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "showStimulus"', 'event_time'));
             endStim = sort(fetchn(stimulation.StimTrialEvents(key) & 'event_type = "endStimulus"', 'event_time'));
@@ -87,10 +89,10 @@ classdef LnpModel < dj.Relvar
             for iTrial = 1 : nTrials
     
                 % extract lfp for this trial (samples are centered within bins)
-                firstSample = getSampleIndex(br, showStim(iTrial)) - pad;
-                lastSample = firstSample + nBins * decimation + 2 * pad;
-                temp = resample(lfp(firstSample : lastSample + 1), 1, decimation, filt);
-                trialLfp(:, iTrial) = temp(ceil(pad / decimation) + (1 : nBins));
+                firstSample = getSampleIndex(br, showStim(iTrial) + binSize / 2) - pad;
+                lastSample = ceil(firstSample + (nBins - 1) * decq / decp + 2 * pad);
+                temp = resample(lfp(firstSample : lastSample), decp, decq, filt);
+                trialLfp(:, iTrial) = temp(N + (1 : nBins));
                 
                 % bin spikes
                 while iSpike <= nSpikes && spikeTimes(iSpike) < showStim(iTrial)
