@@ -22,7 +22,14 @@ classdef PairStats < dj.Relvar
         end
         
         function makeTuples(self, key)
-            [rates, pref] = fetchn(nc.OriTuning * nc.UnitPairMembership(key), 'dir_mean_rate', 'pref_ori');
+            highContrast = max(fetchn(nc.GratingConditions(key), 'contrast'));
+            if max(fetchn(nc.GratingConditions(key), 'direction')) < 180
+                rate = 'ori_mean_rate';
+            else
+                rate = 'dir_mean_rate';
+            end
+            [rates, pref] = fetchn(nc.OriTuning(struct('contrast', highContrast)) ...
+                * nc.UnitPairMembership(key), rate, 'pref_ori');
             [x, y] = fetchn(nc.UnitPairMembership(key) * ephys.Spikes * ae.TetrodeProperties, 'loc_x', 'loc_y');
             rates = cat(1, rates{:});
             tuple = key;
