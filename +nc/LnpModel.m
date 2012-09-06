@@ -87,7 +87,7 @@ classdef LnpModel < dj.Relvar
             ppsth = zeros(nBins, nCond);
             
             for iTrial = 1 : nTrials
-    
+                
                 % extract lfp for this trial (samples are centered within bins)
                 firstSample = getSampleIndex(br, showStim(iTrial) + binSize / 2) - pad;
                 lastSample = ceil(firstSample + (nBins - 1) * decq / decp + 2 * pad);
@@ -138,6 +138,11 @@ classdef LnpModel < dj.Relvar
     
     methods (Access = private, Static)
         function stim = stimMatrix(key)
+            % Create stimulus part of the design matrix.
+            %   We use 10 basis functions (1st one is DC) for each stimulus
+            %   condition. The basis function are obtained by doing PCA on
+            %   the PSTHs (see nc.PsthBasis)
+            
             % trials & conditions
             trials = fetch(nc.GratingTrials(key) * nc.GratingConditions, 'direction');
             trials = dj.struct.sort(trials, 'trial_num');
@@ -155,7 +160,7 @@ classdef LnpModel < dj.Relvar
                 iRows = nBins * (iTrial - 1) + (1 : nBins);
                 iCols = nBasisFun * (conditions(iTrial) - 1) + (1 : nBasisFun);
                 stim(iRows, iCols) = psth;
-            end            
+            end
         end
     end
 end
