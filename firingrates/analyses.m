@@ -15,7 +15,7 @@ rs = rs(ndx);
 
 
 %% plots
-bins = 10 .^ (-2.5 : 0.5 : 2.5);
+bins = 10 .^ (-2.5 : 0.25 : 2);
 bins(1) = 0;
 [count, bin] = histc(fr, bins);
 sz = [numel(bins) - 1, 1];
