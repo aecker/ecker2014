@@ -43,7 +43,7 @@ classdef LnpModel < dj.Relvar
             % parameters
             lowpass = 10; % cutoff (Hz)
             tol = 1e-4;
-            assert(1000 / key.bin_size > 2 * lowpass, 'Bin size too large for lowpass cutoff. Aliasing...!');
+            assert(1000 / key.bin_size >= 2 * lowpass, 'Bin size too large for lowpass cutoff. Aliasing...!');
             
             % read LFP
             tetrode = fetch1(ephys.Spikes(key), 'electrode_num');
