@@ -117,7 +117,7 @@ classdef LnpModel < dj.Relvar
             
             % FIT GLM
             X = [self.stimMatrix(key), trialLfp(:)];
-            w = glmfit(X, trialSpikes(:), 'poisson', 'constant', 'off');
+            w = glmfit(X, trialSpikes(:) + 0.001, 'poisson', 'constant', 'off');
             
             % insert into db
             tuple = key;
