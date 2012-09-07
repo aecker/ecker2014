@@ -2,9 +2,9 @@
 nc.GratingTrials (computed) # single trial in grating experiment
 
 -> nc.Gratings
--> nc.GratingConditions
 -> stimulation.StimTrials
 ---
+-> nc.GratingConditions
 %}
 
 classdef GratingTrials < dj.Relvar
