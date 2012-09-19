@@ -59,7 +59,14 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             tuple.location_y = location{1}(2);
             tuple.spatial_freq = getConstant(rel, 'spatialFreq');
             tuple.stimulus_time = getConstant(rel, 'stimulusTime');
-            tuple.post_stimulus_time = getConstant(rel, 'postStimulusTime');
+            try
+                tuple.post_stimulus_time = getConstant(rel, 'postStimulusTime');
+            catch %#ok
+                % some old sessions don't have the postStimulusTime
+                % parameter but this was controlled via delayTime
+                tmp = fetchn(rel * stimulation.StimTrials, 'trial_params');
+                tuple.post_stimulus_time = min(cellfun(@(x) x.delayTime, tmp)) - tuple.stimulus_time;
+            end
             insert(this, tuple);
             
             % Conditions
