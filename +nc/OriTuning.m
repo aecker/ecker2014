@@ -66,12 +66,12 @@ classdef OriTuning < dj.Relvar
                     delay = 300;
                     fixation = ae.SpikesByTrial.spikeCount(rel, [stimTime + delay, stimTime + pauseTime(1)]);
                     fixation = fixation / (pauseTime(1) - delay) * 1000;
-                case {'mgrad', 'movgrad'}
-                    fixTime = getConstant(stimulation.StimTrialGroup(key), 'holdFixationTime');
+                case {'GratingExperiment', 'mgrad', 'movgrad'}
+                    fixTime = min(getParam(stimulation.StimTrials(key), 'holdFixationTime'));
                     fixation = ae.SpikesByTrial.spikeCount(rel, [-fixTime, 0]);
                     fixation = fixation / fixTime * 1000;
                 otherwise
-                    error('TODO')
+                    error('Don''t know what time window to use for fixation period.')
             end
             
             % test for visual responsiveness (adjust for multiple comp).
