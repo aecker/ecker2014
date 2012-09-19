@@ -33,7 +33,7 @@ for subjectId = args.subjectIds(:)'
     rs = rs(ndx);
     
     % firing rate dependence
-    bins = 10 .^ (-2.5 : 0.25 : 1.75);
+    bins = 10 .^ (-2.75 : 0.25 : 1.75);
 %     bins(1) = 0;
     [count, bin] = histc(fr, bins);
     sz = [numel(bins) - 1, 1];
