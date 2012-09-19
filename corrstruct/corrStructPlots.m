@@ -22,7 +22,7 @@ for subjectId = args.subjectIds(:)'
         (nc.UnitStats(key) & sprintf('stability > %.16f', args.stability)));
     
     % obtain data
-    [r, fr, d, rs] = fetchn((nc.NoiseCorrelations(key) * nc.PairStats) - excludePairs, ...
+    [r, fr, d, rs] = fetchn(nc.NoiseCorrelations(key) - excludePairs, ...
         'r_noise_avg', 'min_rate', 'distance', 'r_signal');
     
     % throw out nans and non-spiking pairs

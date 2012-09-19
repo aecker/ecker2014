@@ -87,7 +87,6 @@ parfor i = 1:12
     parpopulate(nc.OriTuningSet, restriction)
     parpopulate(nc.NoiseCorrelationSet, restriction)
     parpopulate(nc.UnitStatsSet, restriction)
-    parpopulate(nc.PairStatsSet, restriction)
 end
 % matlabpool close
 
