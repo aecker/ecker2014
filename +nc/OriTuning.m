@@ -44,17 +44,20 @@ classdef OriTuning < dj.Relvar
             fprintf('Unit %d\n', key.unit_id)
             
             % get spike counts by condition
+            validTrials = validTrialsCompleteBlocks(nc.Gratings(key));
+            rel = (validTrials * nc.GratingConditions) * ae.SpikesByTrial(key);
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
-            rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) ...
-                * nc.GratingTrials(key) * nc.GratingConditions(key);
             nDir = count(nc.GratingConditions(key));
-            minTrials = fix(count(rel) / nDir);
-            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [0 stimTime], 'direction / 180 * pi() -> direction', nDir * minTrials);
+            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [0 stimTime], 'direction / 180 * pi() -> direction');
             spikes = dj.struct.sort(spikes, 'direction');
             directions = [spikes.direction];
             uDir = unique(directions);
             rate = reshape([spikes.spike_count], [], nDir) / stimTime * 1000;
             meanRate = mean(rate, 1);
+            
+            % TMP: check to ensure that we have the same number of trials
+            %      from each condition
+            assert(all(~diff(hist(directions, uDir))), 'Block design messed up!!')
             
             % firing rate during fixation/intertrial
             switch fetch1(acq.Stimulation(key), 'exp_type')
