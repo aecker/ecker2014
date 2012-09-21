@@ -3,6 +3,7 @@ nc.NoiseCorrelationSet (computed) # Set of all noise correlations
 
 -> nc.UnitPairSet
 -> ae.SpikeCountSet
+-> nc.OriTuningSet
 -> nc.Gratings
 ---
 %}
@@ -10,7 +11,8 @@ nc.NoiseCorrelationSet (computed) # Set of all noise correlations
 classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.NoiseCorrelationSet');
-        popRel = nc.UnitPairSet * ae.SpikeCountSet;
+        popRel = (nc.UnitPairSet * ae.SpikeCountSet * nc.OriTuningSet * nc.Gratings) ...
+            & 'stimulus_time >= spike_count_end';
     end
     
     methods 
@@ -47,7 +49,9 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
             rates = rates / fetch1(nc.Gratings(key), 'stimulus_time') * 1000;
             
             % summary statistics for the cells
-            stats = fetch(ephys.Spikes(key) * ae.TetrodeProperties * nc.OriTuning, ...
+            highContrast = fetch1(nc.OriTuning(key), 'max(contrast) -> c');
+            stats = fetch(ephys.Spikes(key) * ae.TetrodeProperties * ...
+                nc.OriTuning(struct('contrast', highContrast)), ...
                 'loc_x', 'loc_y', 'pref_ori');
             stats = dj.struct.sort(stats, 'unit_id');
             x = [stats.loc_x];
