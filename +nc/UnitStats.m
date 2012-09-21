@@ -4,8 +4,11 @@ nc.UnitStats (computed) # Several summary stats for units
 -> nc.UnitStatsSet
 -> ephys.Spikes
 ---
-mean_rate       : float    # average firing rate
-stability       : float    # stability measure
+mean_rate        : float    # average firing rate
+mean_count       : float    # mean spike count
+mean_var         : float    # average variance
+mean_fano = NULL : float    # average fano factor
+stability        : float    # stability measure
 %}
 
 classdef UnitStats < dj.Relvar
@@ -24,13 +27,12 @@ classdef UnitStats < dj.Relvar
             
             % Stability score: correlation (over trials) between spike
             % counts in different conditions. If the overall activity of a
-            % neurons fluctuates slowly over time these will be positive. A
+            % neuron fluctuates slowly over time these will be positive. A
             % stable neuron's stability score will be close to zero.
             %
             % To get maximal power in detecting instabilities we use a
-            % large window to count spikes (including fixation/intertrial)
+            % large window to count spikes (including fixation)
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
-            preStimTime = fetch1(ae.SpikesByTrialSet(key), 'pre_stim_time');
             rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) * nc.GratingTrials(key);
             nCond = count(stimulation.StimConditions(key));
             minTrials = fix(count(rel) / nCond);
@@ -43,11 +45,17 @@ classdef UnitStats < dj.Relvar
                 tuple.stability = 1;
             end
             
-            % Mean firing rate. Here we use the window of interest for the
-            % analysis, defined by the SpikeCounts table
-            counts = fetchn(ae.SpikeCounts(key), 'spike_count');
-            tuple.mean_rate = mean(counts) / (key.spike_count_end - key.spike_count_start) * 1000;
-            
+            % Mean firing rates and variances. Here we use the window of
+            % interest for the analysis, defined by the SpikeCounts table
+            trials = validTrialsCompleteBlocks(nc.Gratings(key));
+            nCond = count(nc.GratingConditions(key));
+            data = fetch(ae.SpikeCounts(key) * trials, 'spike_count', 'condition_num');
+            data = dj.struct.sort(data, 'condition_num');
+            counts = reshape([data.spike_count], [], nCond);
+            tuple.mean_count = mean(counts(:));
+            tuple.mean_var = mean(var(counts, [], 1));
+            tuple.mean_fano = mean(var(counts, [], 1) ./ mean(counts, 1));
+            tuple.mean_rate = tuple.mean_count / (key.spike_count_end - key.spike_count_start) * 1000;
             self.insert(tuple);
         end
     end
