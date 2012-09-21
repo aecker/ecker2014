@@ -33,8 +33,8 @@ for subjectId = args.subjectIds(:)'
     rs = rs(ndx);
     
     % firing rate dependence
-    bins = 10 .^ (-2.75 : 0.25 : 1.75);
-%     bins(1) = 0;
+    bins = 10 .^ (-2.25 : 0.25 : 2);
+    bins(1) = 0;
     [count, bin] = histc(fr, bins);
     sz = [numel(bins) - 1, 1];
     m = accumarray(bin, r, sz, @mean);
