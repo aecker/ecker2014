@@ -60,6 +60,7 @@ classdef LnpModel2 < dj.Relvar
             lfpFile = fetch1(cont.Lfp(key), 'lfp_file');
             br = baseReader(getLocalPath(lfpFile), sprintf('t%d', tetrode));
             lfp = br(:, 1);
+            lfp = toMuV(br, lfp); % convert to muV
             
             % determine resampling factors
             Fs = getSamplingRate(br);
