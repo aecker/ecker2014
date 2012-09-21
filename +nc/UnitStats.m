@@ -57,6 +57,17 @@ classdef UnitStats < dj.Relvar
             tuple.mean_fano = mean(var(counts, [], 1) ./ mean(counts, 1));
             tuple.mean_rate = tuple.mean_count / (key.spike_count_end - key.spike_count_start) * 1000;
             self.insert(tuple);
+            
+            % stats by condition
+            for iCond = 1 : nCond
+                tuple = key;
+                tuple.condition_num = iCond;
+                tuple.mean_count_cond = mean(counts(:, iCond));
+                tuple.var_cond = var(counts(:, iCond));
+                tuple.fano_cond = tuple.var_cond / tuple.mean_count_cond;
+                tuple.mean_rate_cond = tuple.mean_count_cond / (key.spike_count_end - key.spike_count_start) * 1000;
+                insert(nc.UnitStatsConditions, tuple)
+            end
         end
     end
 end
