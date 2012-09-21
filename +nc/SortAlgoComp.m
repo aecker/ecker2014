@@ -10,7 +10,7 @@ missed_kalman             : float      # percent misses
 missed_mog                : float      # percent false positives
 num_spikes_kalman         : int        # number of spikes unit 1
 num_spikes_mog            : int        # number of spikes unit 2
-match                     : float      # percent hits
+hit_frac                  : float      # percent hits
 mean_hits = NULL          : mediumblob # average waveform of all hits
 mean_missed_kalman = NULL : mediumblob # average waveform of misses by first algo
 mean_missed_mog = NULL    : mediumblob # average waveform of misses by second algo
