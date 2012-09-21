@@ -36,7 +36,7 @@ classdef UnitStats < dj.Relvar
             rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) * nc.GratingTrials(key);
             nCond = count(stimulation.StimConditions(key));
             minTrials = fix(count(rel) / nCond);
-            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [-preStimTime, stimTime], 'condition_num', minTrials * nCond);
+            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [-300, stimTime], 'condition_num', minTrials * nCond);
             spikes = dj.struct.sort(spikes, 'condition_num');
             counts = reshape([spikes.spike_count], [], nCond);
             R = corrcoef(counts);
