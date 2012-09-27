@@ -23,7 +23,7 @@ for subjectId = args.subjectIds(:)'
     
     % obtain data
     [r, fr, d, rs] = fetchn(nc.NoiseCorrelations(key) - excludePairs, ...
-        'r_noise_avg', 'min_rate', 'distance', 'r_signal');
+        'r_noise_avg', 'geom_mean_rate', 'distance', 'r_signal');
     
     % throw out nans and non-spiking pairs
     ndx = ~isnan(r) & fr > 0;
