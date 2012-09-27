@@ -121,7 +121,7 @@ classdef LnpModel2 < dj.Relvar
             end
             
             % subtract stimulus-evoked LFP component
-            trialLfp = bsxfun(@minus, trialLfp, mean(trialLfp, 2));
+            trialLfp = bsxfun(@minus, trialLfp, mean(trialLfp, 3));
             
             opt = {0    0     'glm'; ...
                    0    0.001 'glm'; ... 
