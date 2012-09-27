@@ -13,7 +13,7 @@ args = parseVarArgs(args, varargin{:});
 subjectNames = {};
 figure
 k = 0;
-hhdl = zeros(1, numel(subjectIds));
+hhdl = zeros(1, numel(args.subjectIds));
 for subjectId = args.subjectIds(:)'
     k = k + 1;
     
@@ -68,7 +68,7 @@ for subjectId = args.subjectIds(:)'
     
     subplot(2, 2, 1), hold all
     hdl = errorbar(binc(frbins), m, se, '.');
-    hhdl(k) = plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr'), 'color', get(hdl, 'color'));
+    plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr'), 'color', get(hdl, 'color'))
     set(gca, 'box', 'off', 'xlim', xl)
     xlabel(sprintf(lbl, 'Geometric mean firing rate [spikes/sec]'))
     ylabel('Spike count correlation')
@@ -103,7 +103,7 @@ for subjectId = args.subjectIds(:)'
     
     subplot(2, 2, 3), hold all
     hdl = errorbar(binc(dbins), m, se, '.');
-    plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd'), 'color', get(hdl, 'color'))
+    hhdl(k) = plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd'), 'color', get(hdl, 'color'));
     set(gca, 'box', 'off', 'xlim', dbins([1 end]))
     xlabel('Distamce between tetrodes (mu)')
     ylabel('Spike count correlation')
