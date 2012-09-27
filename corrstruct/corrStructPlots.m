@@ -7,11 +7,15 @@ args.sortMethodNum = 5;
 args.spikeCountEnd = 500;
 args.contam = 0.1;
 args.stability = 0.1;
+args.rateDepType = 'lin';  % lin/sqrt/log
 args = parseVarArgs(args, varargin{:});
 
 subjectNames = {};
 figure
+k = 0;
+hhdl = zeros(1, numel(subjectIds));
 for subjectId = args.subjectIds(:)'
+    k = k + 1;
     
     % restrictions
     key = struct('subject_id', subjectId{1}, ...
@@ -32,35 +36,56 @@ for subjectId = args.subjectIds(:)'
     d = d(ndx);
     rs = rs(ndx);
     
+    % fit regression model
+    %   [this isn't completely correct yet since the predictors aren't
+    %    independent; need to think about how to fix that]
+    par = regress(r, [fr, rs, d, ones(size(d))]);
+    
+    binc = @(b) b(2 : end) - diff(b(end - 1 : end)) / 2;
+    
     % firing rate dependence
-    bins = 10 .^ (-2.25 : 0.25 : 2);
-    bins(1) = 0;
-    [count, bin] = histc(fr, bins);
-    sz = [numel(bins) - 1, 1];
-    m = accumarray(bin, r, sz, @mean);
-    m(count(1 : end - 1) < 5) = NaN;
-    se = accumarray(bin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    switch args.rateDepType
+        case 'lin'
+            frbins = 0 : 5 : 70;
+            [count, frbin] = histc(fr, frbins);
+            lbl = '%s';
+            xl = [0 40];
+        case 'sqrt'
+            frbins = 0 : 0.5 : 8;
+            [count, frbin] = histc(sqrt(fr), frbins);
+            lbl = 'sqrt(%s)';
+            xl = [0 6];
+        case 'log'
+            frbins = [-Inf, -1 : 0.25 : 2];
+            [count, frbin] = histc(log10(fr), frbins);
+            lbl = 'log10(%s)';
+            xl = [-1.25 2];
+    end
+    sz = [numel(frbins) - 1, 1];
+    m = accumarray(frbin, r, sz, @mean);
+    m(count(1 : end - 1) < 3) = NaN;
+    se = accumarray(frbin, r, sz, @(x) std(x) / sqrt(numel(x)));
     
     subplot(2, 2, 1), hold all
-    binCenters = 10 .^ (log10(bins(2 : end)) - diff(log10(bins(2 : 3))) / 2);
-    errorbar(binCenters, m, se, '.-')
-    set(gca, 'xscale', 'log', 'box', 'off', 'xlim', bins([1 end]))
-    xlabel('Geometric mean firing rate (spikes/sec)')
+    hdl = errorbar(binc(frbins), m, se, '.');
+    hhdl(k) = plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr'), 'color', get(hdl, 'color'));
+    set(gca, 'box', 'off', 'xlim', xl)
+    xlabel(sprintf(lbl, 'Geometric mean firing rate [spikes/sec]'))
     ylabel('Spike count correlation')
     
     % signal correlation dependence
-    bins = -1 : 0.5 : 1;
-    bins(end) = 1.001;
-    [count, bin] = histc(rs, bins);
-    sz = [numel(bins) - 1, 1];
-    m = accumarray(bin, r, sz, @mean);
+    rsbins = -1 : 0.5 : 1;
+    rsbins(end) = 1.00001;
+    [count, rsbin] = histc(rs, rsbins);
+    sz = [numel(rsbins) - 1, 1];
+    m = accumarray(rsbin, r, sz, @mean);
     m(count(1 : end - 1) < 5) = NaN;
-    se = accumarray(bin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    se = accumarray(rsbin, r, sz, @(x) std(x) / sqrt(numel(x)));
     
     subplot(2, 2, 2), hold all
-    binCenters = bins(2 : end) - diff(bins(1 : 2)) / 2;
-    errorbar(binCenters, m, se, '.-')
-    set(gca, 'box', 'off', 'xlim', bins([1 end]))
+    hdl = errorbar(binc(rsbins), m, se, '.');
+    plot(binc(rsbins), evalReg(rsbins, binc(rsbins), par, fr, rs, d, 'rs'), 'color', get(hdl, 'color'))
+    set(gca, 'box', 'off', 'xlim', rsbins([1 end]))
     xlabel('Signal correlation')
     ylabel('Spike count correlation')
     
@@ -70,16 +95,16 @@ for subjectId = args.subjectIds(:)'
     else
         dbins = 0 : 0.5 : 4;
     end
-    [count, bin] = histc(d, bins);
-    sz = [numel(bins) - 1, 1];
-    m = accumarray(bin, r, sz, @mean);
+    [count, dbin] = histc(d, dbins);
+    sz = [numel(dbins) - 1, 1];
+    m = accumarray(dbin, r, sz, @mean);
     m(count(1 : end - 1) < 5) = NaN;
-    se = accumarray(bin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    se = accumarray(dbin, r, sz, @(x) std(x) / sqrt(numel(x)));
     
     subplot(2, 2, 3), hold all
-    binCenters = bins(2 : end) - diff(bins(1 : 2)) / 2;
-    errorbar(binCenters, m, se, '.-')
-    set(gca, 'box', 'off', 'xlim', bins([1 end]))
+    hdl = errorbar(binc(dbins), m, se, '.');
+    plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd'), 'color', get(hdl, 'color'))
+    set(gca, 'box', 'off', 'xlim', dbins([1 end]))
     xlabel('Distamce between tetrodes (mu)')
     ylabel('Spike count correlation')
     
@@ -90,3 +115,26 @@ end
 
 legend(hhdl, subjectNames)
 
+
+function rp = evalReg(bins, bc, par, fr, rs, d, marg)
+
+rp = zeros(size(bc));
+for i = 1 : numel(rp)
+    switch marg
+        case 'fr'
+            rp(i) = par(1) * bc(i) + ...
+                    par(2) * mean(rs(fr >= bins(i) & fr < bins(i + 1))) + ...
+                    par(3) * mean(d(fr >= bins(i) & fr < bins(i + 1))) + ...
+                    par(4);
+        case 'rs'
+            rp(i) = par(1) * mean(fr(rs >= bins(i) & rs < bins(i + 1))) + ...
+                    par(2) * bc(i) + ...
+                    par(3) * mean(d(rs >= bins(i) & rs < bins(i + 1))) + ...
+                    par(4);
+        case 'd'
+            rp(i) = par(1) * mean(fr(d >= bins(i) & d < bins(i + 1))) + ...
+                    par(2) * mean(rs(d >= bins(i) & d < bins(i + 1))) + ...
+                    par(3) * bc(i) + ...
+                    par(4);
+    end
+end
