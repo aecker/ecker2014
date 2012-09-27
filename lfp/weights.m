@@ -51,3 +51,18 @@ for i = 1 : 4
     ylabel('LFP weight')
 end
 legend(subjectNames)
+
+
+%% MODEL 3
+xl = 0.02;
+figure(3), clf
+for i = 1 : 4
+    w = fetchn(nc.LnpModel3('min_freq = 0') & ephys.Spikes & ...
+        struct('subject_id', subjectIds(i)) & ...
+        nc.LnpModel3Spikes('mean_rate > 5'), 'lfp_param');
+    subplot(2, 2, i)
+    hist(w, linspace(-xl, xl, 40))
+    xlim([-xl xl])
+    title(sprintf('%s | median = %e', fetch1(acq.Subjects(struct('subject_id', subjectIds(i))), 'subject_name'), median(w)))
+end
+
