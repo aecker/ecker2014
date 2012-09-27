@@ -46,7 +46,8 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
                 end
                 rates(iCond, :) = mean(spikeCounts, 1);
             end
-            rates = rates / fetch1(nc.Gratings(key), 'stimulus_time') * 1000;
+            duration = key.spike_count_end - key.spike_count_start;
+            rates = rates / duration * 1000;
             
             % summary statistics for the cells
             highContrast = fetch1(nc.OriTuning(key), 'max(contrast) -> c');
