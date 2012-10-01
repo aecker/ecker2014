@@ -54,7 +54,7 @@ classdef UnitStats < dj.Relvar
             counts = reshape([data.spike_count], [], nCond);
             tuple.mean_count = mean(counts(:));
             tuple.mean_var = mean(var(counts, [], 1));
-            tuple.mean_fano = mean(var(counts, [], 1) ./ mean(counts, 1));
+            tuple.mean_fano = nanmean(var(counts, [], 1) ./ mean(counts, 1));
             tuple.mean_rate = tuple.mean_count / (key.spike_count_end - key.spike_count_start) * 1000;
             self.insert(tuple);
             
