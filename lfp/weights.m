@@ -44,7 +44,6 @@ for i = 1 : 4
     wm(counts < 5) = NaN;
     wse = accumarray(bin, w, [numel(b), 1], @(x) std(x) / sqrt(numel(x)));
     errorbar(b + diff(b(1 : 2)) / 2, wm, wse, '.-')
-    % plot(b + diff(b(1 : 2)) / 2, wm, '.-')
     subjectNames{i} = fetch1(acq.Subjects(struct('subject_id', subjectIds(i))), 'subject_name');
     set(gca, 'xlim', b([1 end]), 'xticklabel', fix(round(10 .^ get(gca, 'xtick') * 100)) / 100)
     xlabel('Firing rate (spikes/s)')
@@ -54,15 +53,20 @@ legend(subjectNames)
 
 
 %% MODEL 3
-xl = 0.02;
-figure(3), clf
+xl = [0.03 0.03 0.015 0.015];
+figure(3), clf, hold all
 for i = 1 : 4
-    w = fetchn(nc.LnpModel3('min_freq = 0') & ephys.Spikes & ...
+    w = fetchn(nc.LnpModel3('min_freq = 0.5 AND num_trials = 30') & ephys.Spikes & ...
         struct('subject_id', subjectIds(i)) & ...
-        nc.LnpModel3Spikes('mean_rate > 5'), 'lfp_param');
+        nc.LnpModel3Spikes('mean_rate > 1'), 'lfp_param');
     subplot(2, 2, i)
-    hist(w, linspace(-xl, xl, 40))
-    xlim([-xl xl])
+    xli = xl(i);
+    bins = linspace(-xli, xli, 101);
+    h = histc(w, bins);
+    h = h / sum(h);
+    bar(bins + diff(bins(1:2)) / 2, h, 1)
+    xlim([-xli xli])
     title(sprintf('%s | median = %e', fetch1(acq.Subjects(struct('subject_id', subjectIds(i))), 'subject_name'), median(w)))
 end
+
 
