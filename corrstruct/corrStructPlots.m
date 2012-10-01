@@ -1,4 +1,4 @@
-function corrStructPlots(varargin)
+function varargout = corrStructPlots(varargin)
 % Dependence of noise correlations on firing rates
 % AE 2012-08-06
 
@@ -8,10 +8,12 @@ args.spikeCountEnd = 500;
 args.contam = 0.1;
 args.stability = 0.1;
 args.rateDepType = 'lin';  % lin/sqrt/log
+args.adjustPred = false;
 args = parseVarArgs(args, varargin{:});
 
 subjectNames = {};
-figure
+
+set(figure, 'DefaultAxesColorOrder', [0 0 0; 0 0 1; 1 0 0; 1 0 1; 0 0.5 0])
 k = 0;
 hhdl = zeros(1, numel(args.subjectIds));
 for subjectId = args.subjectIds(:)'
@@ -40,7 +42,9 @@ for subjectId = args.subjectIds(:)'
     %   [this isn't completely correct yet since the predictors aren't
     %    independent; need to think about how to fix that]
     par = regress(r, [fr, rs, d, ones(size(d))]);
-    
+    if nargout
+        varargout{1}(k, :) = par;
+    end
     binc = @(b) b(2 : end) - diff(b(end - 1 : end)) / 2;
     
     % firing rate dependence
@@ -68,7 +72,7 @@ for subjectId = args.subjectIds(:)'
     
     subplot(2, 2, 1), hold all
     hdl = errorbar(binc(frbins), m, se, '.');
-    plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr'), 'color', get(hdl, 'color'))
+    plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr', args.adjustPred), 'color', get(hdl, 'color'))
     set(gca, 'box', 'off', 'xlim', xl)
     xlabel(sprintf(lbl, 'Geometric mean firing rate [spikes/sec]'))
     ylabel('Spike count correlation')
@@ -84,7 +88,7 @@ for subjectId = args.subjectIds(:)'
     
     subplot(2, 2, 2), hold all
     hdl = errorbar(binc(rsbins), m, se, '.');
-    plot(binc(rsbins), evalReg(rsbins, binc(rsbins), par, fr, rs, d, 'rs'), 'color', get(hdl, 'color'))
+    plot(binc(rsbins), evalReg(rsbins, binc(rsbins), par, fr, rs, d, 'rs', args.adjustPred), 'color', get(hdl, 'color'))
     set(gca, 'box', 'off', 'xlim', rsbins([1 end]))
     xlabel('Signal correlation')
     ylabel('Spike count correlation')
@@ -103,7 +107,7 @@ for subjectId = args.subjectIds(:)'
     
     subplot(2, 2, 3), hold all
     hdl = errorbar(binc(dbins), m, se, '.');
-    hhdl(k) = plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd'), 'color', get(hdl, 'color'));
+    hhdl(k) = plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd', args.adjustPred), 'color', get(hdl, 'color'));
     set(gca, 'box', 'off', 'xlim', dbins([1 end]))
     xlabel('Distamce between tetrodes (mu)')
     ylabel('Spike count correlation')
@@ -116,25 +120,36 @@ end
 legend(hhdl, subjectNames)
 
 
-function rp = evalReg(bins, bc, par, fr, rs, d, marg)
+function rp = evalReg(bins, bc, par, fr, rs, d, marg, adjust)
 
 rp = zeros(size(bc));
 for i = 1 : numel(rp)
-    switch marg
-        case 'fr'
-            rp(i) = par(1) * bc(i) + ...
+    if adjust
+        switch marg
+            case 'fr'
+                rp(i) = par(1) * bc(i) + ...
                     par(2) * mean(rs(fr >= bins(i) & fr < bins(i + 1))) + ...
                     par(3) * mean(d(fr >= bins(i) & fr < bins(i + 1))) + ...
                     par(4);
-        case 'rs'
-            rp(i) = par(1) * mean(fr(rs >= bins(i) & rs < bins(i + 1))) + ...
+            case 'rs'
+                rp(i) = par(1) * mean(fr(rs >= bins(i) & rs < bins(i + 1))) + ...
                     par(2) * bc(i) + ...
                     par(3) * mean(d(rs >= bins(i) & rs < bins(i + 1))) + ...
                     par(4);
-        case 'd'
-            rp(i) = par(1) * mean(fr(d >= bins(i) & d < bins(i + 1))) + ...
+            case 'd'
+                rp(i) = par(1) * mean(fr(d >= bins(i) & d < bins(i + 1))) + ...
                     par(2) * mean(rs(d >= bins(i) & d < bins(i + 1))) + ...
                     par(3) * bc(i) + ...
                     par(4);
+        end
+    else
+        switch marg
+            case 'fr'
+                rp(i) = par(1) * bc(i) + par(2) * mean(rs) + par(3) * mean(d) + par(4);
+            case 'rs'
+                rp(i) = par(1) * mean(fr) + par(2) * bc(i) + par(3) * mean(d) + par(4);
+            case 'd'
+                rp(i) = par(1) * mean(fr) + par(2) * mean(rs) + par(3) * bc(i) + par(4);
+        end
     end
 end
