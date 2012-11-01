@@ -17,4 +17,7 @@ addpath(pwd)
 cd(fullfile(base, '../../moksm'))
 addpath(pwd)
 
+% GPFA lib
+run(fullfile(base, '../gpfa/startup.m'))
+
 cd(old)
