@@ -34,7 +34,7 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             
             % get spikes
             validTrials = (stimulation.StimTrials(key) * nc.GratingTrials(key)) & 'valid_trial = true';
-            data = fetch(ae.SpikesByTrial(key) & validTrials, 'spikes_by_trial');
+            data = fetch(ae.SpikesByTrial(key) * validTrials, 'spikes_by_trial');
             data = dj.struct.sort(data, {'trial_num', 'unit_id'});
             nUnits = max([data.unit_id]);
             nTrials = numel(data) / nUnits;
