@@ -52,7 +52,8 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             p = 3;
             sigmaN = 1e-3;
             tol = 1e-4;
-            seed = sum(dj.DataHash(key));
+            hash = dj.DataHash(key);
+            seed = hex2dec(hash(1 : 8));
             model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
             model = model.fit(Y, p);
             
