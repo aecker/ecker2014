@@ -4,6 +4,7 @@ nc.GpfaModel (computed) # Gaussian process factor analysis model
 -> nc.GratingConditions
 -> ae.SpikesByTrialSet
 latent_dim  : int       # number of latent dimensions
+-> nc.GpfaDataTransforms
 ---
 sigma_n     : double    # GP innovation noise
 tolerance   : double    # convergence tolerance for EM algorithm
@@ -39,14 +40,17 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             nUnits = max([data.unit_id]);
             nTrials = numel(data) / nUnits;
             data = reshape(data, nUnits, nTrials);
-            Y = zeros(nUnits, nBins, nTrials);
+            x = zeros(nUnits, nBins, nTrials);
             for iTrial = 1 : nTrials
                 for iUnit = 1 : nUnits
-                    yi = histc(data(iUnit, iTrial).spikes_by_trial, bins);
-                    Y(iUnit, :, iTrial) = yi(1 : nBins);
+                    xi = histc(data(iUnit, iTrial).spikes_by_trial, bins);
+                    x(iUnit, :, iTrial) = xi(1 : nBins);
                 end
             end
-            Y = 2 * sqrt(Y + 3/8);  % stabilize variance (Anscombe transf.)
+            
+            % transform data
+            formula = fetch1(nc.GpfaDataTransforms & key, 'transform_formula');
+            x = eval([formula ';']);
             
             % fit GPFA model
             p = 3;
