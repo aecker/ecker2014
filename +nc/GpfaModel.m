@@ -3,20 +3,20 @@ nc.GpfaModel (computed) # Gaussian process factor analysis model
 
 -> nc.GratingConditions
 -> ae.SpikesByTrialSet
-latent_dim  : int       # number of latent dimensions
+-> nc.GpfaParams
 -> nc.GpfaDataTransforms
 ---
 sigma_n     : double    # GP innovation noise
 tolerance   : double    # convergence tolerance for EM algorithm
-seed        : int       # random number generator seed
-bin_size    : int       # bin size (ms)
+seed        : bigint    # random number generator seed
 model       : longblob  # GPFA model structure
 %}
 
 classdef GpfaModel < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.GpfaModel');
-        popRel = nc.GratingConditions * ae.SpikesByTrialSet;
+        popRel = nc.GratingConditions * ae.SpikesByTrialSet * ...
+            nc.GpfaParams * nc.GpfaDataTransforms;
     end
     
     methods 
@@ -28,10 +28,9 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
     methods (Access = protected)
         function makeTuples(self, key)
             
-            binSize = 100;
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
-            nBins = fix(stimTime / binSize);
-            bins = (0 : nBins) * binSize;
+            nBins = fix(stimTime / key.bin_size);
+            bins = (0 : nBins) * key.bin_size;
             
             % get spikes
             validTrials = (stimulation.StimTrials(key) * nc.GratingTrials(key)) & 'valid_trial = true';
@@ -53,20 +52,17 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             x = eval([formula ';']);
             
             % fit GPFA model
-            p = 3;
             sigmaN = 1e-3;
             tol = 1e-4;
             hash = dj.DataHash(key);
             seed = hex2dec(hash(1 : 8));
             model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
-            model = model.fit(Y, p);
+            model = model.fit(x, [], key.latent_dim);
             
-            key.latent_dim = p;
             tuple = key;
             tuple.sigma_n = sigmaN;
             tuple.tolerance = tol;
             tuple.seed = seed;
-            tuple.bin_size = binSize;
             tuple.model = struct(model);
             self.insert(tuple);
         end
