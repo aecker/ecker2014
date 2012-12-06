@@ -15,8 +15,12 @@ model       : longblob  # GPFA model structure
 classdef GpfaModel < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.GpfaModel');
-        popRel = nc.GratingConditions * ae.SpikesByTrialSet * ...
-            nc.GpfaParams * nc.GpfaDataTransforms;
+        popRel = nc.GratingConditions * ae.SpikesByTrialSet * nc.GpfaDataTransforms * ...
+            (pro(ephys.SpikeSet, ephys.Spikes, 'count(subject_id) -> num_units') * nc.GpfaParams) & 'num_units > latent_dim';
+            % excluding tuples with less or equal neurons as latent
+            % dimensions. can't exclude all of them since sometimes some
+            % units don't fire spikes during the stimulus but we have no
+            % way of catching this outside the makeTuples function.
     end
     
     methods 
