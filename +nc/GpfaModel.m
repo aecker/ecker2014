@@ -32,9 +32,10 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
     methods (Access = protected)
         function makeTuples(self, key)
             
+            offset = 30; % offset from stimulus onset to account for latencies
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
             nBins = fix(stimTime / key.bin_size);
-            bins = (0 : nBins) * key.bin_size;
+            bins = offset + (0 : nBins) * key.bin_size;
             
             % get spikes
             validTrials = (stimulation.StimTrials(key) * nc.GratingTrials(key)) & 'valid_trial = true';
