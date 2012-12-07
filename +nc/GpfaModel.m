@@ -4,7 +4,7 @@ nc.GpfaModel (computed) # Gaussian process factor analysis model
 -> nc.GratingConditions
 -> ae.SpikesByTrialSet
 -> nc.GpfaParams
--> nc.GpfaDataTransforms
+-> nc.DataTransforms
 ---
 sigma_n     : double    # GP innovation noise
 tolerance   : double    # convergence tolerance for EM algorithm
@@ -15,7 +15,7 @@ model       : longblob  # GPFA model structure
 classdef GpfaModel < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.GpfaModel');
-        popRel = nc.GratingConditions * ae.SpikesByTrialSet * nc.GpfaDataTransforms * ...
+        popRel = nc.GratingConditions * ae.SpikesByTrialSet * nc.DataTransforms * ...
             (pro(ephys.SpikeSet, ephys.Spikes, 'count(subject_id) -> num_units') * nc.GpfaParams) & 'num_units > latent_dim';
             % excluding tuples with less or equal neurons as latent
             % dimensions. can't exclude all of them since sometimes some
