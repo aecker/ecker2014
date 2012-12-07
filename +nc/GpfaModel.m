@@ -10,6 +10,7 @@ sigma_n     : double    # GP innovation noise
 tolerance   : double    # convergence tolerance for EM algorithm
 seed        : bigint    # random number generator seed
 model       : longblob  # GPFA model structure
+psth        : longblob  # PSTH
 %}
 
 classdef GpfaModel < dj.Relvar & dj.AutoPopulate
@@ -57,7 +58,8 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             x = eval(formula);
             
             % convert to residuals
-            x = bsxfun(@minus, x, mean(x, 3));
+            psth = mean(x, 3);
+            x = bsxfun(@minus, x, psth);
             
             % fit GPFA model
             sigmaN = 1e-3;
@@ -72,6 +74,7 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             tuple.tolerance = tol;
             tuple.seed = seed;
             tuple.model = struct(model);
+            tuple.psth = psth;
             self.insert(tuple);
         end
     end
