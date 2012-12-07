@@ -11,6 +11,7 @@ tolerance   : double    # convergence tolerance for EM algorithm
 seed        : bigint    # random number generator seed
 model       : longblob  # GPFA model structure
 psth        : longblob  # PSTH
+unit_ids    : mediumblob    # list of unit ids used
 %}
 
 classdef GpfaModel < dj.Relvar & dj.AutoPopulate
@@ -53,6 +54,12 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
                 end
             end
             
+            % remove non-spiking and low-firing-rate cells
+            minRate = 0.5;  % spikes/sec
+            m = mean(Y(1 : nUnits, :), 2) / key.bin_size * 1000;
+            unitIds = find(m > minRate);
+            Y = Y(unitIds, :, :); %#ok
+            
             % transform data
             formula = fetch1(nc.DataTransforms & key, 'formula');
             Y = eval(strrep(formula, 'x', 'Y'));
@@ -75,6 +82,7 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             tuple.seed = seed;
             tuple.model = struct(model);
             tuple.psth = psth;
+            tuple.unit_ids = unitIds;
             self.insert(tuple);
         end
     end
