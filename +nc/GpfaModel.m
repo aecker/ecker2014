@@ -45,21 +45,21 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             nUnits = max([data.unit_id]);
             nTrials = numel(data) / nUnits;
             data = reshape(data, nUnits, nTrials);
-            x = zeros(nUnits, nBins, nTrials);
+            Y = zeros(nUnits, nBins, nTrials);
             for iTrial = 1 : nTrials
                 for iUnit = 1 : nUnits
                     xi = histc(data(iUnit, iTrial).spikes_by_trial, bins);
-                    x(iUnit, :, iTrial) = xi(1 : nBins);
+                    Y(iUnit, :, iTrial) = xi(1 : nBins);
                 end
             end
             
             % transform data
-            formula = fetch1(nc.GpfaDataTransforms & key, 'transform_formula');
-            x = eval(formula);
+            formula = fetch1(nc.DataTransforms & key, 'formula');
+            Y = eval(strrep(formula, 'x', 'Y'));
             
             % convert to residuals
-            psth = mean(x, 3);
-            x = bsxfun(@minus, x, psth);
+            psth = mean(Y, 3);
+            Y = bsxfun(@minus, Y, psth);
             
             % fit GPFA model
             sigmaN = 1e-3;
@@ -67,7 +67,7 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             hash = dj.DataHash(key);
             seed = hex2dec(hash(1 : 8));
             model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
-            model = model.fit(x, [], key.latent_dim);
+            model = model.fit(Y, [], key.latent_dim);
             
             tuple = key;
             tuple.sigma_n = sigmaN;
