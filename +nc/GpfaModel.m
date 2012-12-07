@@ -54,7 +54,7 @@ classdef GpfaModel < dj.Relvar & dj.AutoPopulate
             
             % transform data
             formula = fetch1(nc.GpfaDataTransforms & key, 'transform_formula');
-            x = eval([formula ';']);
+            x = eval(formula);
             
             % convert to residuals
             x = bsxfun(@minus, x, mean(x, 3));
