@@ -1,7 +1,6 @@
 %{
-nc.GpfaParams (computed) # GPFA model parameters
+nc.GpfaParams (manual) # GPFA model parameters
 
-latent_dim  : tinyint unsigned  # number of latent dimensions
 bin_size    : int unsigned      # bin size (ms)
 ---
 %}
