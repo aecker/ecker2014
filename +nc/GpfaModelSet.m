@@ -112,7 +112,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     tuple = key;
                     tuple.latent_dim = p;
                     tuple.cv_run = k;
-                    tuple.model = model;
+                    tuple.model = struct(model);
                     tuple.train_set = train;
                     tuple.test_set = test;
                     tuple.seed = seed;
