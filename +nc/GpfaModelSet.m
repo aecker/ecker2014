@@ -116,6 +116,8 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     tuple.train_set = train;
                     tuple.test_set = test;
                     tuple.seed = seed;
+                    tuple.log_like_train = model.logLike(end);
+                    [~, ~, tuple.log_like_test] = model.estX(Y(:, :, test));
                     insert(nc.GpfaModel, tuple);
                     
                     seed = seed + 1;
