@@ -3,6 +3,9 @@ nc.GpfaCovExpl (computed) # Covariance explained by GPFA model
 
 -> nc.GpfaModel
 ---
+cov_train           : mediumblob    # covariance matrix of training set
+cov_test            : mediumblob    # covariance matrix of test set
+cov_pred            : mediumblob    # predicted covariance matrix
 norm_train          : double        # norm for training set
 norm_test           : double        # norm for tes set
 norm_pred           : double        # norm for prediction
@@ -32,6 +35,9 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             Qtest = cov(Ysub(Y, test));
             Qpred = model.C * model.C' + model.R;
             tuple = key;
+            tuple.cov_train = Qtrain;
+            tuple.cov_test = Qtest;
+            tuple.cov_pred = Qpred;
             tuple.norm_diff_train = norm(Qtrain - Qpred, 'fro');
             tuple.norm_diff_test = norm(Qtest - Qpred, 'fro');
             tuple.norm_train = norm(Qtrain, 'fro');
@@ -40,6 +46,7 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             tuple.rel_diff_train = tuple.norm_diff_train / tuple.norm_train;
             tuple.rel_diff_test = tuple.norm_diff_test / tuple.norm_test;
             self.insert(tuple);
+            makeTuples(nc.GpfaCovExplPairs, key);
         end
     end
     
