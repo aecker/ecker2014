@@ -43,7 +43,6 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             sigmaN = 1e-3;  % GP innovation noise
             tol = 1e-4;     % convergence criterion for fitting
             pmax = 10;      % max number of latent factors
-            kfold = 5;      % kfold cross-validation
             offset = 30;    % offset from stimulus onset to account for latencies
             
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
@@ -99,11 +98,11 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
 
             % partition data for cross-validation
             nTrials = size(Y, 3);
-            part = round(linspace(0, nTrials, kfold + 1));
+            part = round(linspace(0, nTrials, key.kfold_cv + 1));
             
             % fit GPFA models
             for p = 1 : pmax
-                for k = 1 : kfold
+                for k = 1 : key.kfold_cv
                     test = part(k) + 1 : part(k + 1);
                     train = setdiff(1 : nTrials, test);
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);

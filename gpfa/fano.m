@@ -1,6 +1,7 @@
 function fano(varargin)
 % Analysis of Fano factors as a function of number of internal factors
 % AE 2012-12-07
+% !!! OUTDATED. works with rev. 325c7e9 !!!
 
 if ~nargin
     restrictions = {'subject_id in (9, 11)', ...
