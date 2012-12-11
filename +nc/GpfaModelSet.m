@@ -101,7 +101,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             part = round(linspace(0, nTrials, key.kfold_cv + 1));
             
             % fit GPFA models
-            for p = 1 : pmax
+            for p = 0 : pmax
                 for k = 1 : key.kfold_cv
                     test = part(k) + 1 : part(k + 1);
                     train = setdiff(1 : nTrials, test);
