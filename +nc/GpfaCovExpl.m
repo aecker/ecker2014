@@ -8,6 +8,8 @@ cov_test            : mediumblob    # covariance matrix of test set
 cov_pred            : mediumblob    # predicted covariance matrix
 cov_resid_train     : mediumblob    # residual covariance for training set
 cov_resid_test      : mediumblob    # residual covariance for test set
+cov_resid_orig_train: mediumblob    # resid cov for untrans data (training)
+cov_resid_orig_test : mediumblob    # resid cov for untrans data (test)
 norm_train          : double        # norm for training set
 norm_test           : double        # norm for tes set
 norm_pred           : double        # norm for prediction
@@ -38,12 +40,16 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             Qtest = cov(Ysub(Y, test));
             Qpred = model.C * model.C' + model.R;
             Yres = model.resid(Y);
+            inverse = fetch1(nc.DataTransforms(key), 'inverse');
+            YresOrig = eval(strrep(inverse, 'x', 'Yres'));
             tuple = key;
             tuple.cov_train = Qtrain;
             tuple.cov_test = Qtest;
             tuple.cov_pred = Qpred;
             tuple.cov_resid_train = cov(Ysub(Yres, train));
             tuple.cov_resid_test = cov(Ysub(Yres, test));
+            tuple.cov_resid_orig_train = cov(Ysub(YresOrig, train));
+            tuple.cov_resid_orig_test = cov(Ysub(YresOrig, test));
             tuple.norm_diff_train = norm(Qtrain - Qpred, 'fro');
             tuple.norm_diff_test = norm(Qtest - Qpred, 'fro');
             tuple.norm_train = norm(Qtrain, 'fro');
