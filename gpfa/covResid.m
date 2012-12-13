@@ -35,40 +35,62 @@ assert(numel(unique([data.transform_num])) == 1, 'transform_num must be specifie
 data = dj.struct.sort(data, {'cv_run', 'latent_dim', 'stim_start_time'});
 data = reshape(data, [n / kfold, pmax + 1, kfold]);
 
-rtrain = residuals(data, 'cov_resid_train');
-rtest = residuals(data, 'cov_resid_test');
+[ctrain, rtrain] = residuals(data, 'cov_resid_train');
+[ctest, rtest] = residuals(data, 'cov_resid_test');
 
 % plot data
 figure(30 + data(1).transform_num), clf
 
-subplot(1, 2, 1)
-plot(0 : pmax, mean(mean(rtrain, 3), 1), '.-k', ...
-     0 : pmax, mean(mean(rtest, 3), 1), '.-r')
+subplot(2, 2, 1)
+plot(0 : pmax, mean(mean(ctrain, 3), 1), '.-k', ...
+     0 : pmax, mean(mean(ctest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
 ylabel('Mean residual covariance')
 set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(1, 2, 2)
-plot(0 : pmax, std(mean(rtrain, 3), 1), '.-k', ...
-     0 : pmax, std(mean(rtest, 3), 1), '.-r')
+subplot(2, 2, 2)
+plot(0 : pmax, std(mean(ctrain, 3), 1), '.-k', ...
+     0 : pmax, std(mean(ctest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
 ylabel('SD of residual covariance')
 box off
 
+subplot(2, 2, 3)
+plot(0 : pmax, mean(mean(rtrain, 3), 1), '.-k', ...
+     0 : pmax, mean(mean(rtest, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('Mean residual corrcoef')
+set(legend({'Training data', 'Test data'}), 'box', 'off')
+box off
 
-function r = residuals(data, field)
+subplot(2, 2, 4)
+plot(0 : pmax, std(mean(rtrain, 3), 1), '.-k', ...
+     0 : pmax, std(mean(rtest, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('SD of residual corrcoef')
+box off
+
+
+function [c, r] = residuals(data, field)
 
 offdiag = @(x) x(~tril(ones(size(x))));
 [n, pmax, kfold] = size(data);
+c = zeros(0, pmax);
 r = zeros(0, pmax);
 for p = 1 : pmax
     for k = 1 : kfold
+        cpk = cell(1, n);
         rpk = cell(1, n);
         for i = 1 : n
-            rpk{i} = offdiag(data(i, p, k).(field));
+            C = data(i, p, k).(field);
+            R = C ./ sqrt(diag(C) * diag(C)');
+            cpk{i} = offdiag(C);
+            rpk{i} = offdiag(R);
         end
+        cpk = cat(1, cpk{:});
         rpk = cat(1, rpk{:});
+        c(1 : numel(cpk), p, k) = cpk;
         r(1 : numel(rpk), p, k) = rpk;
     end
 end
