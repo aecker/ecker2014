@@ -41,7 +41,8 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             Qpred = model.C * model.C' + model.R;
             Yres = model.resid(Y);
             inverse = fetch1(nc.DataTransforms & key, 'inverse');
-            YresOrig = eval(strrep(inverse, 'x', 'Yres'));
+            x = Yres; %#ok
+            YresOrig = eval(inverse);
             tuple = key;
             tuple.cov_train = Qtrain;
             tuple.cov_test = Qtest;
