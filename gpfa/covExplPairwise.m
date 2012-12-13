@@ -35,7 +35,7 @@ for p = 0 : pmax
 end
 
 % plot data
-figure(2), clf
+figure(20 + data(1).transform_num), clf
 
 subplot(2, 2, 1)
 plot(0 : pmax, sqrt(mean(dtrain .^ 2, 1)), '.-k')

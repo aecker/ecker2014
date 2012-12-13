@@ -42,7 +42,7 @@ for p = 0 : pmax
 end
 
 % plot
-figure(1), clf, hold on
+figure(10 + data(1).transform_num), clf, hold on
 subplot(211)
 errorbar(0 : pmax, mean(dtrain), std(dtrain) / sqrt(n), '.-k')
 xlim([-1 pmax + 1])
