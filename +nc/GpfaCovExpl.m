@@ -40,7 +40,7 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             Qtest = cov(Ysub(Y, test));
             Qpred = model.C * model.C' + model.R;
             Yres = model.resid(Y);
-            inverse = fetch1(nc.DataTransforms(key), 'inverse');
+            inverse = fetch1(nc.DataTransforms & key, 'inverse');
             YresOrig = eval(strrep(inverse, 'x', 'Yres'));
             tuple = key;
             tuple.cov_train = Qtrain;
@@ -58,7 +58,6 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
             tuple.rel_diff_train = tuple.norm_diff_train / tuple.norm_train;
             tuple.rel_diff_test = tuple.norm_diff_test / tuple.norm_test;
             self.insert(tuple);
-            makeTuples(nc.GpfaCovExplPairs, key);
         end
     end
     
