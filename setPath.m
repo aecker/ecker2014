@@ -20,4 +20,7 @@ addpath(pwd)
 % GPFA lib
 run(fullfile(base, '../gpfa/startup.m'))
 
+% SGI lib
+addpath(getLocalPath('/lab/cluster/dj'))
+
 cd(old)
