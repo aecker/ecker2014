@@ -27,10 +27,11 @@ data = fetch(rel, '*');
 kfold = data(1).kfold_cv;
 
 % some sanity checks
-assert(numel(unique([data.sort_method_num])) == 1, 'sort_method_num must be specified!')
-assert(numel(unique([data.bin_size])) == 1, 'bin_size must be specified!')
-assert(numel(unique([data.kfold_cv])) == 1, 'kfold_cv must be specified!')
-assert(numel(unique([data.transform_num])) == 1, 'transform_num must be specified!')
+assert(numel(unique([data.detect_method_num])) == 1, 'detect_method_num must be unique!')
+assert(numel(unique([data.sort_method_num])) == 1, 'sort_method_num must be unique!')
+assert(numel(unique([data.bin_size])) == 1, 'bin_size must be unique!')
+assert(numel(unique([data.kfold_cv])) == 1, 'kfold_cv must be unique!')
+assert(numel(unique([data.transform_num])) == 1, 'transform_num must be unique!')
 
 data = dj.struct.sort(data, {'cv_run', 'latent_dim', 'stim_start_time'});
 data = reshape(data, [n / kfold, pmax + 1, kfold]);
