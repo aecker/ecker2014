@@ -12,4 +12,21 @@ classdef DataTransforms < dj.Relvar
     properties(Constant)
         table = dj.Table('nc.DataTransforms');
     end
+    
+    methods
+        function y = transform(relvar, x) %#ok
+            % Transform data x using transform defined by relvar.
+            %   y = transform(relvar, x)
+            
+            assert(count(relvar) == 1, 'Relvar must be scalar!')
+            y = eval(fetch1(relvar, 'formula'));
+        end
+        
+        function y = invert(relvar, x) %#ok
+            % Compute inverse of transformation defined by relvar for x.
+            
+            assert(count(relvar) == 1, 'Relvar must be scalar!')
+            y = eval(fetch1(relvar, 'inverse'));
+        end
+    end 
 end
