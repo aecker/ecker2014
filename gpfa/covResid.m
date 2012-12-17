@@ -75,6 +75,36 @@ xlim([-1 pmax + 1])
 ylabel('SD of residual corrcoef')
 box off
 
+subplot(m, n, k); k = k + 1;
+plot(0 : pmax, mean(mean(ctrainOrig, 3), 1), '.-k', ...
+     0 : pmax, mean(mean(ctestOrig, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('Mean residual covariance')
+set(legend({'Training data', 'Test data'}), 'box', 'off')
+box off
+
+subplot(m, n, k); k = k + 1;
+plot(0 : pmax, std(mean(ctrainOrig, 3), 1), '.-k', ...
+     0 : pmax, std(mean(ctestOrig, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('SD of residual covariance')
+box off
+
+subplot(m, n, k); k = k + 1;
+plot(0 : pmax, mean(mean(rtrainOrig, 3), 1), '.-k', ...
+     0 : pmax, mean(mean(rtestOrig, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('Mean residual corrcoef')
+set(legend({'Training data', 'Test data'}), 'box', 'off')
+box off
+
+subplot(m, n, k);
+plot(0 : pmax, std(mean(rtrainOrig, 3), 1), '.-k', ...
+     0 : pmax, std(mean(rtestOrig, 3), 1), '.-r')
+xlim([-1 pmax + 1])
+ylabel('SD of residual corrcoef')
+box off
+
 
 function [c, r] = residuals(data, field)
 
