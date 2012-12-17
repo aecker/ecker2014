@@ -11,7 +11,8 @@ tolerance           : double            # convergence tolerance for EM algorithm
 seed                : bigint            # random number generator seed
 raw_data            : longblob          # raw spike count matrix
 transformed_data    : longblob          # transformed spike count matrix
-psth                : longblob          # PSTH
+raw_psth            : longblob          # raw PSTH
+transformed_psth    : longblob          # transformed PSTH
 unit_ids            : mediumblob        # list of unit ids used
 num_units           : tinyint unsigned  # number of units in model
 num_trials          : tinyint unsigned  # number of trials in model
@@ -70,6 +71,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             unitIds = find(m > minRate);
             Y = Y(unitIds, :, :);
             Yraw = Y;
+            psthRaw = mean(Yraw, 3);
             
             % transform data
             formula = fetch1(nc.DataTransforms & key, 'formula');
@@ -90,7 +92,8 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             tuple.seed = seed;
             tuple.raw_data = Yraw;
             tuple.transformed_data = Y;
-            tuple.psth = psth;
+            tuple.raw_psth = psthRaw;
+            tuple.transformed_psth = psth;
             tuple.unit_ids = unitIds;
             tuple.num_units = numel(unitIds);
             tuple.num_trials = nTrials;
