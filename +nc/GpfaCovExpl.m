@@ -8,8 +8,8 @@ cov_test            : mediumblob    # covariance matrix of test set
 cov_pred            : mediumblob    # predicted covariance matrix
 cov_resid_train     : mediumblob    # residual covariance for training set
 cov_resid_test      : mediumblob    # residual covariance for test set
-cov_resid_orig_train: mediumblob    # resid cov for untrans data (training)
-cov_resid_orig_test : mediumblob    # resid cov for untrans data (test)
+cov_resid_raw_train : mediumblob    # resid cov for untrans data (training)
+cov_resid_raw_test  : mediumblob    # resid cov for untrans data (test)
 norm_train          : double        # norm for training set
 norm_test           : double        # norm for tes set
 norm_pred           : double        # norm for prediction
@@ -33,24 +33,24 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
     
     methods (Access = protected)
         function makeTuples(self, key)
-            Y = fetch1(nc.GpfaModelSet(key), 'transformed_data');
+            [Y, Yt] = fetch1(nc.GpfaModelSet(key), 'raw_data', 'transformed_data');
             [train, test, model] = fetch1(nc.GpfaModel(key), 'train_set', 'test_set', 'model');
             model = GPFA(model);
-            Qtrain = cov(Ysub(Y, train));
-            Qtest = cov(Ysub(Y, test));
+            Qtrain = cov(Ysub(Yt, train));
+            Qtest = cov(Ysub(Yt, test));
             Qpred = model.C * model.C' + model.R;
-            Yres = model.resid(Y);
-            inverse = fetch1(nc.DataTransforms & key, 'inverse');
-            x = Yres; %#ok
-            YresOrig = eval(inverse);
+            Ypred = model.predict(Yt);
+            Yres = Yt - Ypred;
+            YpredRaw = invert(nc.DataTransforms & key, Ypred);
+            YresRaw = Y - YpredRaw;
             tuple = key;
             tuple.cov_train = Qtrain;
             tuple.cov_test = Qtest;
             tuple.cov_pred = Qpred;
             tuple.cov_resid_train = cov(Ysub(Yres, train));
             tuple.cov_resid_test = cov(Ysub(Yres, test));
-            tuple.cov_resid_orig_train = cov(Ysub(YresOrig, train));
-            tuple.cov_resid_orig_test = cov(Ysub(YresOrig, test));
+            tuple.cov_resid_raw_train = cov(Ysub(YresRaw, train));
+            tuple.cov_resid_raw_test = cov(Ysub(YresRaw, test));
             tuple.norm_diff_train = norm(Qtrain - Qpred, 'fro');
             tuple.norm_diff_test = norm(Qtest - Qpred, 'fro');
             tuple.norm_train = norm(Qtrain, 'fro');

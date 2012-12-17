@@ -38,6 +38,8 @@ data = reshape(data, [n / kfold, pmax + 1, kfold]);
 
 [ctrain, rtrain] = residuals(data, 'cov_resid_train');
 [ctest, rtest] = residuals(data, 'cov_resid_test');
+[ctrainOrig, rtrainOrig] = residuals(data, 'cov_resid_raw_train');
+[ctestOrig, rtestOrig] = residuals(data, 'cov_resid_raw_test');
 
 % plot data
 figure(30 + data(1).transform_num), clf
