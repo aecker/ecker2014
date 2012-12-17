@@ -43,8 +43,9 @@ data = reshape(data, [n / kfold, pmax + 1, kfold]);
 
 % plot data
 figure(30 + data(1).transform_num), clf
+m = 4; n = 2; k = 1;
 
-subplot(2, 2, 1)
+subplot(m, n, k); k = k + 1;
 plot(0 : pmax, mean(mean(ctrain, 3), 1), '.-k', ...
      0 : pmax, mean(mean(ctest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
@@ -52,14 +53,14 @@ ylabel('Mean residual covariance')
 set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(2, 2, 2)
+subplot(m, n, k); k = k + 1;
 plot(0 : pmax, std(mean(ctrain, 3), 1), '.-k', ...
      0 : pmax, std(mean(ctest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
 ylabel('SD of residual covariance')
 box off
 
-subplot(2, 2, 3)
+subplot(m, n, k); k = k + 1;
 plot(0 : pmax, mean(mean(rtrain, 3), 1), '.-k', ...
      0 : pmax, mean(mean(rtest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
@@ -67,7 +68,7 @@ ylabel('Mean residual corrcoef')
 set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(2, 2, 4)
+subplot(m, n, k); k = k + 1;
 plot(0 : pmax, std(mean(rtrain, 3), 1), '.-k', ...
      0 : pmax, std(mean(rtest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
