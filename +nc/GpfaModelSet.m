@@ -74,8 +74,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             psthRaw = mean(Yraw, 3);
             
             % transform data
-            formula = fetch1(nc.DataTransforms & key, 'formula');
-            Y = eval(strrep(formula, 'x', 'Y'));
+            Y = transform(nc.DataTransforms & key, Y);
             
             % convert to residuals
             psth = mean(Y, 3);
