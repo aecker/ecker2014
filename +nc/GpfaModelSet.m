@@ -97,6 +97,13 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             tuple.num_units = numel(unitIds);
             tuple.num_trials = nTrials;
             self.insert(tuple);
+            
+            % insert units that were used
+            for unitId = unitIds'
+                tuple = key;
+                tuple.unit_id = unitId;
+                insert(nc.GpfaUnits, tuple);
+            end
 
             % partition data for cross-validation
             nTrials = size(Y, 3);
