@@ -8,7 +8,7 @@ nc.GpfaModelSet (computed) # Gaussian process factor analysis model
 ---
 sigma_n             : double            # GP innovation noise
 tolerance           : double            # convergence tolerance for EM algorithm
-seed                : bigint            # random number generator seed
+start_seed          : bigint            # random number generator seed
 raw_data            : longblob          # raw spike count matrix
 transformed_data    : longblob          # transformed spike count matrix
 raw_psth            : longblob          # raw PSTH
@@ -88,7 +88,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             tuple = key;
             tuple.sigma_n = sigmaN;
             tuple.tolerance = tol;
-            tuple.seed = seed;
+            tuple.start_seed = seed;
             tuple.raw_data = Yraw;
             tuple.transformed_data = Y;
             tuple.raw_psth = psthRaw;
