@@ -11,4 +11,10 @@ classdef GpfaParams < dj.Relvar
     properties(Constant)
         table = dj.Table('nc.GpfaParams');
     end
+    
+    methods 
+        function self = GpfaParams(varargin)
+            self.restrict(varargin{:})
+        end
+    end
 end
