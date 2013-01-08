@@ -13,6 +13,7 @@ raw_data            : longblob          # raw spike count matrix
 transformed_data    : longblob          # transformed spike count matrix
 raw_psth            : longblob          # raw PSTH
 transformed_psth    : longblob          # transformed PSTH
+transformed_sd      : longblob          # transformed SDs
 unit_ids            : mediumblob        # list of unit ids used
 num_units           : tinyint unsigned  # number of units in model
 num_trials          : tinyint unsigned  # number of trials in model
@@ -79,6 +80,14 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             % convert to residuals
             psth = mean(Y, 3);
             Y = bsxfun(@minus, Y, psth);
+            
+            % normalize?
+            if key.zscore
+                sd = std(Y(1 : end, :), [], 2);
+                Y = bsxfun(@rdivide, Y, sd);
+            else
+                sd = [];
+            end
 
             % random number generator seed for reproducible behavior
             hash = dj.DataHash(key);
@@ -93,6 +102,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             tuple.transformed_data = Y;
             tuple.raw_psth = psthRaw;
             tuple.transformed_psth = psth;
+            tuple.transformed_sd = sd;
             tuple.unit_ids = unitIds;
             tuple.num_units = numel(unitIds);
             tuple.num_trials = nTrials;
