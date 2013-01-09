@@ -81,3 +81,13 @@ transformNum = 2;
 zscore = 1;
 timescales(transformNum, zscore)
 
+
+%% Visualize GPFA model
+%
+% Plot rasters for all cells and overlay the estimate of the latent factor.
+%
+% last update: 2013-01-09
+
+load ~/lab/projects/anesthesia/figures/viskey.mat
+visualize(key, trials)
+
