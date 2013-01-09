@@ -1,27 +1,17 @@
-function covExplPairwise(varargin)
+function covExplPairwise(transformNum, zscore, byTrial, coeff)
 % Analyze how well the GPFA model approximates the covariance matrix.
+%   covExplPairwise(transformNum, zscore, byTrial, coeff) where
+%   transformNum, zscore, and byTrial define which model should be used and
+%   coeff indicates whether or not the differences are taken on the
+%   covariances or correlation coefficients.
 %
 %   For this analysis we look at the off-diagonals of the difference
 %   between observed and predicted (by GPFA) covariance matrix.
 %
-%   It seems like there are a few large values. This is probably because
-%   the Anscombe transformation isn't stabilizing the variances
-%   sufficiently since the data is quite overdispersed compared to Poisson
-%   even when modelling internal factors. We could probably consider
-%   z-scoring the data before fitting the model. However, this may put too
-%   much emphasis on low-firing rate cells. This needs to be explored
-%   further.
-%
 % AE 2012-12-11
 
-if ~nargin
-    restrictions = {'subject_id in (9, 11)', ...
-                    'sort_method_num = 5', ...
-                    'transform_num = 2', ...
-                    'kfold_cv = 2'};
-else
-    restrictions = varargin;
-end
+restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
+                 struct('transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
 
 rel = nc.GpfaCovExpl & restrictions;
 n = count(rel & 'latent_dim = 0');
@@ -38,50 +28,47 @@ assert(numel(unique([data.transform_num])) == 1, 'transform_num must be specifie
 data = dj.struct.sort(data, {'cv_run', 'latent_dim', 'stim_start_time'});
 data = reshape(data, [n / kfold, pmax + 1, kfold]);
 
-dtrain = differences(data, 'cov_train');
-dtest = differences(data, 'cov_test');
+dtrain = differences(data, 'cov_train', coeff);
+dtest = differences(data, 'cov_test', coeff);
 
 % plot data
-figure(20 + data(1).transform_num), clf
+fig = sum([transformNum zscore byTrial coeff] .* 10 .^ (3 : -1 : 0));
+figure(fig), clf
 
-subplot(2, 2, 1)
-plot(0 : pmax, sqrt(mean(mean(dtrain .^ 2, 3), 1)), '.-k')
+subplot(2, 1, 1)
+plot(0 : pmax, sqrt(mean(mean(dtrain .^ 2, 3), 1)), '.-k', ...
+     0 : pmax, sqrt(mean(mean(dtest .^ 2, 3), 1)), '.-r')
 xlim([-1 pmax + 1])
 title('RMS difference')
-set(legend('Training data'), 'box', 'off')
+set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(2, 2, 2)
-plot(0 : pmax, median(mean(abs(dtrain), 3), 1), '.-k')
+subplot(2, 1, 2)
+plot(0 : pmax, median(mean(abs(dtrain), 3), 1), '.-k', ...
+     0 : pmax, median(mean(abs(dtest), 3), 1), '.-r')
 xlim([-1 pmax + 1])
 title('median absolute difference')
 box off
 
-subplot(2, 2, 3)
-plot(0 : pmax, sqrt(mean(mean(dtest, 3), 1)), '.-r')
-xlim([-1 pmax + 1])
-xlabel('# latent factors')
-set(legend('Test data'), 'box', 'off')
-box off
-
-subplot(2, 2, 4)
-plot(0 : pmax, median(mean(abs(dtest), 3), 1), '.-r')
-xlim([-1 pmax + 1])
-xlabel('# latent factors')
-box off
 
 
-
-function d = differences(data, field)
+function d = differences(data, field, coeff)
 
 offdiag = @(x) x(~tril(ones(size(x))));
+corr = @(C) C ./ sqrt(diag(C) * diag(C)');
 [n, pmax, kfold] = size(data);
 d = zeros(0, pmax);
 for p = 1 : pmax
     for k = 1 : kfold
         dpk = cell(1, n);
         for i = 1 : n
-            dpk{i} = offdiag(data(i, p, k).(field) - data(i, p, k).cov_pred);
+            if coeff    % convert to correlation coefficient?
+                dpk{i} = offdiag(corr(data(i, p, k).(field)) - corr(data(i, p, k).cov_pred));
+%                 dpk{i} = offdiag(corr(data(i, p, k).(strrep(field, '_', '_resid_'))));
+            else
+                dpk{i} = offdiag(data(i, p, k).(field) - data(i, p, k).cov_pred);
+%                 dpk{i} = offdiag(data(i, p, k).(strrep(field, '_', '_resid_')));
+            end
         end
         dpk = cat(1, dpk{:});
         d(1 : numel(dpk), p, k) = dpk;
