@@ -7,17 +7,6 @@ function covExpl(varargin)
 %   observed covariance matrix (to account for number of cells and
 %   different variances).
 %
-%   I'm not sure if this analysis is ideal for a number of reasons. Here
-%   are some thoughts on it.
-%
-%   * The values are related to the residual variance of the covariances
-%   * We're normalizing by the norm of the observed covariance matrix,
-%     which is dominated by the diagonal terms.
-%   * How much the diagonal terms account for the overall norm will likely
-%     depend on the number of cells since their number is linear in the
-%     number of cells while the number of off-diagonals scales with the
-%     square.
-%
 % AE 2012-12-11
 
 if ~nargin

@@ -8,7 +8,7 @@ function covExplPairwise(transformNum, zscore, byTrial, coeff)
 %   For this analysis we look at the off-diagonals of the difference
 %   between observed and predicted (by GPFA) covariance matrix.
 %
-% AE 2012-12-11
+% AE 2013-01-09
 
 restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
                  struct('transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
@@ -28,47 +28,69 @@ assert(numel(unique([data.transform_num])) == 1, 'transform_num must be specifie
 data = dj.struct.sort(data, {'cv_run', 'latent_dim', 'stim_start_time'});
 data = reshape(data, [n / kfold, pmax + 1, kfold]);
 
-dtrain = differences(data, 'cov_train', coeff);
-dtest = differences(data, 'cov_test', coeff);
+% convert to correlation coefficients?
+if coeff
+    convert = @(C) C ./ sqrt(diag(C) * diag(C)');
+else
+    convert = @(C) C;
+end
+
+% residual cov/corr
+restrain = collect(data, @(data) convert(data.cov_resid_train));
+restest = collect(data, @(data) convert(data.cov_resid_test));
+
+% differences between predicted and observed
+fun = @(data, field) convert(data.(field)) - convert(data.cov_pred);
+dtrain = collect(data, @(data) fun(data, 'cov_train'));
+dtest = collect(data, @(data) fun(data, 'cov_test'));
 
 % plot data
 fig = sum([transformNum zscore byTrial coeff] .* 10 .^ (3 : -1 : 0));
 figure(fig), clf
+ttext = {'covariance', 'corrcoef'};
 
-subplot(2, 1, 1)
+subplot(2, 2, 1)
 plot(0 : pmax, sqrt(mean(mean(dtrain .^ 2, 3), 1)), '.-k', ...
      0 : pmax, sqrt(mean(mean(dtest .^ 2, 3), 1)), '.-r')
 xlim([-1 pmax + 1])
-title('RMS difference')
+title('RMS')
+ylabel(['Diff of ' ttext{coeff + 1} 's'])
 set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(2, 1, 2)
+subplot(2, 2,2)
 plot(0 : pmax, median(mean(abs(dtrain), 3), 1), '.-k', ...
      0 : pmax, median(mean(abs(dtest), 3), 1), '.-r')
 xlim([-1 pmax + 1])
-title('median absolute difference')
+title('Median absolute')
+box off
+
+subplot(2, 2, 3)
+plot(0 : pmax, sqrt(mean(mean(restrain .^ 2, 3), 1)), '.-k', ...
+     0 : pmax, sqrt(mean(mean(restest .^ 2, 3), 1)), '.-r')
+xlim([-1 pmax + 1])
+ylabel(['Residual ' ttext{coeff + 1}])
+set(legend({'Training data', 'Test data'}), 'box', 'off')
+box off
+
+subplot(2, 2, 4)
+plot(0 : pmax, median(mean(abs(restrain), 3), 1), '.-k', ...
+     0 : pmax, median(mean(abs(restest), 3), 1), '.-r')
+xlim([-1 pmax + 1])
 box off
 
 
 
-function d = differences(data, field, coeff)
+function d = collect(data, fun)
 
 offdiag = @(x) x(~tril(ones(size(x))));
-corr = @(C) C ./ sqrt(diag(C) * diag(C)');
 [n, pmax, kfold] = size(data);
 d = zeros(0, pmax);
 for p = 1 : pmax
     for k = 1 : kfold
         dpk = cell(1, n);
         for i = 1 : n
-            if coeff    % convert to correlation coefficient?
-                dpk{i} = offdiag(corr(data(i, p, k).(field)) - corr(data(i, p, k).cov_pred));
-%                 dpk{i} = offdiag(corr(data(i, p, k).(strrep(field, '_', '_resid_'))));
-            else
-                dpk{i} = offdiag(data(i, p, k).(field) - data(i, p, k).cov_pred);
-%                 dpk{i} = offdiag(data(i, p, k).(strrep(field, '_', '_resid_')));
-            end
+            dpk{i} = offdiag(fun(data(i, p, k)));
         end
         dpk = cat(1, dpk{:});
         d(1 : numel(dpk), p, k) = dpk;

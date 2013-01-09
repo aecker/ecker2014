@@ -5,19 +5,8 @@ function analyzeTransforms(byTrial)
 %   Here I compute the R^2 between predicted and observed data for the
 %   one-factor GPFA model for each cell as a function of the various data
 %   transformations that I used for fitting.
-%
-%   * The differences between the transforms aren't too big (ca. 10%)
-%   * Anscombe transform and log(x + 1) perform best
-%   * R^2 is larger for higher firing rates. This is particularly strong
-%       for the untransformed data. It seems like the model puts most of
-%       its weight here on explaining the high-firing-rate cells.
-%   * The model does put a bit more weight on the most active cells, which
-%       is evident when looking at z-scored data: R^2 is reduced somewhat
-%       for the most active cells, although not by too much. R^2 remains
-%       larger for the most active cells. Thus, the model isn't _just_
-%       putting large weight on the most active cells.
 %   
-% AE 2012-12-21
+% AE 2012-01-08
 
 % use spike counts for entire trial or each bin?
 if ~nargin
