@@ -1,4 +1,4 @@
-function analyzeTransforms()
+function analyzeTransforms(byTrial)
 % Evaluate performance of different transformations.
 %   analyzeTransforms()
 %
@@ -18,6 +18,11 @@ function analyzeTransforms()
 %       putting large weight on the most active cells.
 %   
 % AE 2012-12-21
+
+% use spike counts for entire trial or each bin?
+if ~nargin
+    byTrial = false;
+end
 
 kfold = 2;
 restrictions = {'subject_id IN (9, 11) AND sort_method_num = 5', struct('kfold_cv', kfold)};
@@ -41,8 +46,13 @@ for transform = fetch(nc.DataTransforms)'
                 model = GPFA(run.model);
                 Y = modelset.transformed_data(:, :, run.test_set);
                 Ypred = model.predict(Y);
-                Y = Y(1 : end, :)';
-                Ypred = Ypred(1 : end, :)';
+                if byTrial
+                    Y = permute(sum(Y, 2), [3 1 2]); 
+                    Ypred = permute(sum(Ypred, 2), [3 1 2]); 
+                else
+                    Y = Y(1 : end, :)';
+                    Ypred = Ypred(1 : end, :)';
+                end
                 rsqi = rsqi + mean(zscore(Y, 1) .* zscore(Ypred, 1), 1) .^ 2;
                 Yraw = modelset.raw_data(:, :, run.test_set);
                 mfri = mfri + 1000 / modelset.bin_size * mean(mean(Yraw, 2), 3)';
