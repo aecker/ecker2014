@@ -40,43 +40,41 @@ restrain = collect(data, @(data) convert(data.cov_resid_train));
 restest = collect(data, @(data) convert(data.cov_resid_test));
 
 % differences between predicted and observed
-fun = @(data, field) convert(data.(field)) - convert(data.cov_pred);
-dtrain = collect(data, @(data) fun(data, 'cov_train'));
-dtest = collect(data, @(data) fun(data, 'cov_test'));
+fun = @(data, a, b) convert(data.(a)) - convert(data.(b));
+dpredtrain = collect(data, @(data) fun(data, 'cov_train', 'cov_pred'));
+dpredtest = collect(data, @(data) fun(data, 'cov_test', 'cov_pred'));
+dtraintest = collect(data, @(data) fun(data, 'cov_train', 'cov_test'));
 
 % plot data
 fig = sum([transformNum zscore byTrial coeff] .* 10 .^ (3 : -1 : 0));
 figure(fig), clf
 ttext = {'covariance', 'corrcoef'};
 
-subplot(2, 2, 1)
-plot(0 : pmax, sqrt(mean(mean(dtrain .^ 2, 3), 1)), '.-k', ...
-     0 : pmax, sqrt(mean(mean(dtest .^ 2, 3), 1)), '.-r')
+subplot(1, 3, 1)
+plot(0 : pmax, mean(mean(restrain, 3), 1), '.-k', ...
+     0 : pmax, mean(mean(restest, 3), 1), '.-r')
 xlim([-1 pmax + 1])
-title('RMS')
-ylabel(['Diff of ' ttext{coeff + 1} 's'])
+xlabel('# latent factors')
+ylabel(['Mean residual ' ttext{coeff + 1}])
 set(legend({'Training data', 'Test data'}), 'box', 'off')
 box off
 
-subplot(2, 2,2)
-plot(0 : pmax, median(mean(abs(dtrain), 3), 1), '.-k', ...
-     0 : pmax, median(mean(abs(dtest), 3), 1), '.-r')
+subplot(1, 3, 2)
+plot(0 : pmax, std(mean(restrain, 3), [], 1), '.-k', ...
+     0 : pmax, std(mean(restest, 3), [], 1), '.-r')
 xlim([-1 pmax + 1])
-title('Median absolute')
+xlabel('# latent factors')
+ylabel(['SD of residual ' ttext{coeff + 1}])
 box off
 
-subplot(2, 2, 3)
-plot(0 : pmax, sqrt(mean(mean(restrain .^ 2, 3), 1)), '.-k', ...
-     0 : pmax, sqrt(mean(mean(restest .^ 2, 3), 1)), '.-r')
+subplot(1, 3, 3)
+plot(0 : pmax, sqrt(mean(mean(dpredtrain .^ 2, 3), 1)), '.-k', ...
+     0 : pmax, sqrt(mean(mean(dpredtest .^ 2, 3), 1)), '.-r', ...
+     0 : pmax, sqrt(mean(mean(dtraintest .^ 2, 3), 1)), '--k')
 xlim([-1 pmax + 1])
-ylabel(['Residual ' ttext{coeff + 1}])
-set(legend({'Training data', 'Test data'}), 'box', 'off')
-box off
-
-subplot(2, 2, 4)
-plot(0 : pmax, median(mean(abs(restrain), 3), 1), '.-k', ...
-     0 : pmax, median(mean(abs(restest), 3), 1), '.-r')
-xlim([-1 pmax + 1])
+xlabel('# latent factors')
+ylabel(['RMS diff of ' ttext{coeff + 1} 's'])
+legend({'pred - train', 'pred - test', 'train - test'})
 box off
 
 

@@ -28,22 +28,16 @@ covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transfo
 %% covariance explained (off-diagonals only)
 %
 % For this analysis we look at the off-diagonals of the difference between
-% observed and predicted (by GPFA) covariance matrix.
+% observed and predicted (by GPFA) covariance/corrcoef matrix as well as
+% the covariance/corrcoef matrix of the residuals after accounting for the
+% latent factors.
 %
 % There are several ways of looking at the data:
 %   * Normalize (or not) data before fitting model (parameter zscore)
 %   * Analyze covariances or correlation coefficients (parameter coeff)
 %   * Consider spike counts per bin (100 ms) or per trial (param byTrial)
 %
-% This analysis is somewhat sub-optimal since average correlations and
-% variability in correlations both contribute to the RMS values. The
-% observed reduction could consequently be due to a reduction in either of
-% both quantities
-%
 % last update: 2013-01-09
-
-% TODO: use covariance of residuals instead of differences between observed
-%       and predicted (at the moments it's commented out in the code)
 
 transformNum = 2;
 zscore = 1;
