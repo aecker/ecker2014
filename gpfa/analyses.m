@@ -41,7 +41,7 @@ covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transfo
 
 transformNum = 2;
 zscore = 1;
-byTrial = 1;
+byTrial = 0;
 coeff = 1;
 covExplPairwise(transformNum, zscore, byTrial, coeff)
 
@@ -68,4 +68,16 @@ covExplPairwise(transformNum, zscore, byTrial, coeff)
 byTrial = 1;
 analyzeTransforms(byTrial)
 
+
+%% Timescale of latent factor (for one-factor GPFA model)
+%
+% Here we look at the timescale of the latent factor. It's modeled as a
+% Gaussian process with Gaussian time kernel, so a typical temporal "bump"
+% will last for ca. 4x the timescale value.
+%
+% last update: 2013-01-09
+
+transformNum = 2;
+zscore = 1;
+timescales(transformNum, zscore)
 
