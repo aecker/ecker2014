@@ -90,4 +90,5 @@ timescales(transformNum, zscore)
 
 load ~/lab/projects/anesthesia/figures/viskey.mat
 visualize(key, trials)
+visualize(key, trials2)
 
