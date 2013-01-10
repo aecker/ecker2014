@@ -1,7 +1,34 @@
-% Dependence of noise correlations on firing rates
-% AE 2012-08-06
+% Analysis of noise correlation structure
 
-key = struct('subject_id', {8}, 'sort_method_num', 5, 'spike_count_end', 500);
+
+%% Correlation structure
+%
+% Here we look at how noise correlations depend on firing rate, signal
+% correlations, and distance between cells for both anesthetized and awake
+% monkeys.
+%
+% There are some notable differences between monkeys within both groups. I
+% need to look into the details some more. There are very clear
+% differences, though, between the anesthetized and the awake groups.
+%
+% last update: 2013-01-10
+
+corrStructPlots('subjectIds', {{8 23} {9 11}})
+
+% Here we adjust the linear model for the marginal dependences on signal
+% correlation by the firing rate dependence and the on for distance by
+% signal correlations, since those factors aren't entirely independent.
+corrStructPlots('subjectIds', {{8 23} {9 11}}, 'adjustPred', true)
+
+
+%% Rough preliminary analyses
+%
+% Below are some rough preliminary scripts to look at the correlations and
+% their firing rate/signal correlation/distance dependence
+%
+% last update: 2012-08-06
+
+key = struct('subject_id', {23}, 'sort_method_num', 5, 'spike_count_end', 500);
 assert(~count((nc.UnitPairMembership(key) & nc.NoiseCorrelationSet) - nc.UnitStats(key)), ...
     'nc.UnitStats need to be completely populated!')
 excludePairs = nc.UnitPairMembership(key) & ( ...
