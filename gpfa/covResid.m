@@ -1,4 +1,6 @@
 function covResid(varargin)
+% OUTDATED -- check if still useful...
+
 % Analyze how well the GPFA model approximates the covariance matrix.
 %
 %   For this analysis we look at the covariance of the residuals after
