@@ -46,6 +46,20 @@ coeff = 1;
 covExplPairwise(transformNum, zscore, byTrial, coeff)
 
 
+%% Sanity check for residual variance calculation
+%
+% This function verifies that the way we compute the residual covariance
+% produces the expected result by sampling data from a toy model and
+% estimating the parameters.
+%
+% TODO: the above function wasn;t using the correct formula and hasn't been
+%       updated yet.
+%
+% last update: 2013-01-15
+
+verifyResidCov()
+
+
 %% Compare data transformations
 %
 % Here we compare the different data transformations w.r.t. to R^2 between
