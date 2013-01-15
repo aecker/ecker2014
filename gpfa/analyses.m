@@ -29,8 +29,8 @@ covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transfo
 %
 % For this analysis we look at the off-diagonals of the difference between
 % observed and predicted (by GPFA) covariance/corrcoef matrix as well as
-% the covariance/corrcoef matrix of the residuals after accounting for the
-% latent factors.
+% the residual covariance/corrcoef matrix after accounting for the latent
+% factors.
 %
 % There are several ways of looking at the data:
 %   * Normalize (or not) data before fitting model (parameter zscore)
@@ -51,9 +51,6 @@ covExplPairwise(transformNum, zscore, byTrial, coeff)
 % This function verifies that the way we compute the residual covariance
 % produces the expected result by sampling data from a toy model and
 % estimating the parameters.
-%
-% TODO: the above function wasn;t using the correct formula and hasn't been
-%       updated yet.
 %
 % last update: 2013-01-15
 
