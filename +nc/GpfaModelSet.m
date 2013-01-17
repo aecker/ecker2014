@@ -11,8 +11,6 @@ tolerance           : double            # convergence tolerance for EM algorithm
 start_seed          : bigint            # random number generator seed
 raw_data            : longblob          # raw spike count matrix
 transformed_data    : longblob          # transformed spike count matrix
-raw_psth            : longblob          # raw PSTH
-transformed_psth    : longblob          # transformed PSTH
 transformed_sd      : longblob          # transformed SDs
 unit_ids            : mediumblob        # list of unit ids used
 num_units           : tinyint unsigned  # number of units in model
@@ -72,12 +70,9 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             unitIds = find(m > minRate);
             Y = Y(unitIds, :, :);
             Yraw = Y;
-            psthRaw = mean(Yraw, 3);
             
             % transform data
             Y = transform(nc.DataTransforms & key, Y);
-            
-            psth = mean(Y, 3);
             
             % normalize?
             if key.zscore
@@ -92,25 +87,23 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             seed = hex2dec(hash(1 : 8));
 
             % insert into database
-            tuple = key;
-            tuple.sigma_n = sigmaN;
-            tuple.tolerance = tol;
-            tuple.start_seed = seed;
-            tuple.raw_data = Yraw;
-            tuple.transformed_data = Y;
-            tuple.raw_psth = psthRaw;
-            tuple.transformed_psth = psth;
-            tuple.transformed_sd = sd;
-            tuple.unit_ids = unitIds;
-            tuple.num_units = numel(unitIds);
-            tuple.num_trials = nTrials;
-            self.insert(tuple);
+            set = key;
+            set.sigma_n = sigmaN;
+            set.tolerance = tol;
+            set.start_seed = seed;
+            set.raw_data = Yraw;
+            set.transformed_data = Y;
+            set.transformed_sd = sd;
+            set.unit_ids = unitIds;
+            set.num_units = numel(unitIds);
+            set.num_trials = nTrials;
             
             % insert units that were used
+            units = [];
             for unitId = unitIds'
-                tuple = key;
-                tuple.unit_id = unitId;
-                insert(nc.GpfaUnits, tuple);
+                unit = key;
+                unit.unit_id = unitId;
+                units = [units; unit]; %#ok
             end
 
             % partition data for cross-validation
@@ -118,6 +111,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             part = round(linspace(0, nTrials, key.kfold_cv + 1));
             
             % fit GPFA models
+            models = [];
             for p = 0 : pmax
                 for k = 1 : key.kfold_cv
                     test = part(k) + 1 : part(k + 1);
@@ -125,20 +119,26 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
                     model = model.fit(Y(:, :, train), p, 'hist');
                     
-                    tuple = key;
-                    tuple.latent_dim = p;
-                    tuple.cv_run = k;
-                    tuple.model = struct(model);
-                    tuple.train_set = train;
-                    tuple.test_set = test;
-                    tuple.seed = seed;
-                    tuple.log_like_train = model.logLike(end);
-                    [~, ~, tuple.log_like_test] = model.estX(Y(:, :, test));
-                    insert(nc.GpfaModel, tuple);
+                    m = key;
+                    m.latent_dim = p;
+                    m.cv_run = k;
+                    m.model = struct(model);
+                    m.train_set = train;
+                    m.test_set = test;
+                    m.seed = seed;
+                    m.log_like_train = model.logLike(end);
+                    [~, ~, m.log_like_test] = model.estX(Y(:, :, test));
                     
+                    models = [models; m]; %#ok
                     seed = seed + 1;
                 end
             end
+            
+            % insert all tuples into database (we insert all of them at the
+            % end instead doing it as we go to avoid table lock issues)
+            self.insert(set);
+            insert(nc.GpfaUnits, units);
+            insert(nc.GpfaModel, models);
         end
     end
 end
