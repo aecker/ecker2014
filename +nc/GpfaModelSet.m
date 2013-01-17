@@ -77,9 +77,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             % transform data
             Y = transform(nc.DataTransforms & key, Y);
             
-            % convert to residuals
             psth = mean(Y, 3);
-            Y = bsxfun(@minus, Y, psth);
             
             % normalize?
             if key.zscore
@@ -125,7 +123,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     test = part(k) + 1 : part(k + 1);
                     train = setdiff(1 : nTrials, test);
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
-                    model = model.fit(Y(:, :, train), p);
+                    model = model.fit(Y(:, :, train), p, 'hist');
                     
                     tuple = key;
                     tuple.latent_dim = p;
