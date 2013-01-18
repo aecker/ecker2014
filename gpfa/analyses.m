@@ -37,7 +37,7 @@ covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transfo
 %   * Analyze covariances or correlation coefficients (parameter coeff)
 %   * Consider spike counts per bin (100 ms) or per trial (param byTrial)
 %
-% last update: 2013-01-09
+% last update: 2013-01-18
 
 transformNum = 2;
 zscore = 1;

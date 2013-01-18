@@ -53,8 +53,13 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
                     tuple.cov_train = Qtrain;
                     tuple.cov_test = Qtest;
                     tuple.cov_pred = Qpred;
-                    tuple.cov_resid_train = model.residCov(Yt(:, :, train));
-                    tuple.cov_resid_test = model.residCov(Yt(:, :, test));
+                    if byTrial
+                        tuple.cov_resid_train = model.residCovByTrial(Yt(:, :, train));
+                        tuple.cov_resid_test = model.residCovByTrial(Yt(:, :, test));
+                    else
+                        tuple.cov_resid_train = model.residCov(Yt(:, :, train));
+                        tuple.cov_resid_test = model.residCov(Yt(:, :, test));
+                    end
                     tuple.norm_diff_train = norm(Qtrain - Qpred, 'fro');
                     tuple.norm_diff_test = norm(Qtest - Qpred, 'fro');
                     tuple.norm_train = norm(Qtrain, 'fro');
