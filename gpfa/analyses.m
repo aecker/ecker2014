@@ -41,9 +41,9 @@ covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transfo
 
 transformNum = 2;
 zscore = 1;
-byTrial = 0;
 coeff = 1;
-covExplPairwise(transformNum, zscore, byTrial, coeff)
+covExplPairwise(transformNum, zscore, 0, coeff)
+covExplPairwise(transformNum, zscore, 1, coeff)
 
 
 %% Sanity check for residual variance calculation
