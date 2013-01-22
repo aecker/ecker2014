@@ -112,7 +112,10 @@ timescales(transformNum, zscore)
 %
 % last update: 2013-01-22
 
-firstFactorStruct(transformNum, zscore)
+transformNum = 2;
+zscore = 1;
+p = 2;
+factorLoadingStruct(transformNum, zscore, p)
 
 
 %% Visualize GPFA model
