@@ -128,3 +128,35 @@ load ~/lab/projects/anesthesia/figures/viskey.mat
 visualize(key, trials)
 visualize(key, trials2)
 
+
+%% Structure of residual correlations
+%
+% Here we look at the correlation structure of the residual correlations
+% (after accounting for latent factors). We plot dependence of residual
+% correlations on firing rates, signal correlations, difference in
+% preferred orientation, and distance.
+%
+%   * Firing rate dependence disappears after first factor is accounted
+%     for. In fact the dependence becomes slightly negative, which I don't
+%     have a good explanation for yet. For the bin-based analysis the very
+%     high firing pairs have somewhat higher correlations again while for
+%     the trial-based spike counts this is not true.
+%   * Still positive correlation between signal and noise correlations
+%     after accounting for first factor. It's just shifted downwards. One
+%     can see that the slightly increased correlations for the pairs with
+%     negative signal correlations (which arises because of the firing rate
+%     dependence: strongly negative signal correlations imply high firing
+%     rates) go away when accounting for one latent factor (which also
+%     removes the firing rate dependence).
+%   * The sharp drop from within to across tetrodes remains almost
+%     entirely. Across tetrodes correlations are now 0.01 on average.
+%
+% last update: 2013-01-23
+
+pmax = 1;
+transformNum = 2;
+zscore = 1;
+coeff = 1;
+residCorrStruct(pmax, transformNum, zscore, 0, coeff) % bin-based
+residCorrStruct(pmax, transformNum, zscore, 1, coeff) % trial-based
+
