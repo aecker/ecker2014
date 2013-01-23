@@ -34,6 +34,35 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
         function self = GpfaModelSet(varargin)
             self.restrict(varargin{:})
         end
+
+        function varargout = fetchMatrix(self, rel, varargin)
+            % Fetch arbitrary pair data in matrix form.
+            %   [M1, M2, ...] = fetchMatrix(self, rel, field1, field2, ...)
+
+            assert(count(self) == 1, 'relvar must be scalar!')
+            nFields = numel(varargin);
+            % below is the more efficient way of doing:
+            % joinedRel = nc.GpfaPairs * self * rel
+            joinedRel = nc.GpfaPairs * nc.GpfaModelSet * rel & self.restrictions;
+            [i, j, data{1 : nFields}] = fetchn(joinedRel, 'index_i', 'index_j', varargin{:});
+            nUnits = max(j);
+            varargout = cell(1, nFields);
+            for k = 1 : nFields
+                M = NaN(nUnits);
+                M(sub2ind([nUnits nUnits], i, j)) = data{k};
+                M(sub2ind([nUnits nUnits], j, i)) = data{k};
+                varargout{k} = M;
+            end
+        end
+
+        function varargout = fetchOffdiag(self, rel, varargin)
+            % Fetch arbitrary pair data (off-diagonals of matrix)
+            %   [val1, val2, ...] = fetchOffdiag(self, rel, field1, field2, ...)
+
+            [varargout{1 : nargout}] = self.fetchMatrix(rel, varargin{1 : nargout});
+            offdiag = @(x) x(~tril(ones(size(x))));
+            varargout = cellfun(offdiag, varargout, 'uni', false);
+        end
     end
     
     methods (Access = protected)
@@ -97,14 +126,6 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             set.unit_ids = unitIds;
             set.num_units = numel(unitIds);
             set.num_trials = nTrials;
-            
-            % insert units that were used
-            units = [];
-            for unitId = unitIds'
-                unit = key;
-                unit.unit_id = unitId;
-                units = [units; unit]; %#ok
-            end
 
             % partition data for cross-validation
             nTrials = size(Y, 3);
@@ -137,8 +158,24 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             % insert all tuples into database (we insert all of them at the
             % end instead doing it as we go to avoid table lock issues)
             self.insert(set);
-            insert(nc.GpfaUnits, units);
             insert(nc.GpfaModel, models);
+
+            % insert units that were used
+            for unitId = unitIds'
+                unit = key;
+                unit.unit_id = unitId;
+                insert(nc.GpfaUnits, unit);
+            end
+
+            % insert pairs that were used
+            excludePairs = (nc.UnitPairMembership * nc.UnitPairs * nc.GratingConditions & key) - (nc.GpfaUnits & key);
+            pairs = fetch((nc.GpfaModelSet * nc.UnitPairs & key) - excludePairs, ...
+                nc.UnitPairMembership, 'min(unit_id) -> index_i', 'max(unit_id) -> index_j');
+            [~, i] = histc([pairs.index_i], unitIds); i = num2cell(i);
+            [~, j] = histc([pairs.index_j], unitIds); j = num2cell(j);
+            [pairs.index_i] = deal(i{:});
+            [pairs.index_j] = deal(j{:});
+            insert(nc.GpfaPairs, pairs);
         end
     end
 end
