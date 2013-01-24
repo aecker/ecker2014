@@ -10,13 +10,13 @@ function [varargout] = makeBinned(x, y, bins, varargin)
 
 assert(all(x >= bins(1) & x < bins(end)), 'bins must cover the full range of x values [%f, %f]!', min(x), max(x))
 nFun = numel(varargin);
-bins = bins(:)';
+bins = bins(:);
 [~, bin] = histc(x, bins);
 varargout = cell(1, nargout);
 for k = 1 : nFun
-    out = accumarray(bin, y, [numel(bins) 1], varargin{k});
+    out = accumarray(bin, y, [numel(bins) 1], varargin{k}, varargin{k}([]));
     varargout{k} = out(1 : end - 1);
 end
 if nFun < nargout
-    varargout{nFun + 1} = mean([bins(1 : end - 1); bins(2 : end)], 1);
+    varargout{nFun + 1} = mean([bins(1 : end - 1), bins(2 : end)], 2);
 end
