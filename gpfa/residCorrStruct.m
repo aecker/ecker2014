@@ -30,55 +30,90 @@ for p = 0 : pmax
         
         % fetch properties of pairs
         [props{iKey, :}] = fetchOffdiag(nc.GpfaModelSet & key, nc.NoiseCorrelations * nc.NoiseCorrelationConditions, ...
-            'r_signal', 'geom_mean_rate_cond', 'min_rate_cond', 'diff_pref_ori', 'distance');
+            'geom_mean_rate_cond', 'min_rate_cond', 'r_signal', 'diff_pref_ori', 'distance');
         
         % get residual correlations
         [resid{iKey, :}] = fetch1(nc.GpfaCovExpl & key, 'cov_resid_train', 'cov_resid_test');
     end
     
-    % concatenate all sites/sessions
-    rs = cat(1, props{:, 1});
-    gmr = cat(1, props{:, 2});
-    mr = cat(1, props{:, 3});
-    dp = cat(1, props{:, 4});
-    d = cat(1, props{:, 5});
+    % extract off-diagonals (and normalize)
     if coeff
         fun = @(C) offdiag(corr(C));
     else
         fun = offdiag;
     end
-    resid2 = cellfun(fun, resid, 'uni', false);
-    rtrain = cat(1, resid2{:, 1});
-    rtest = cat(1, resid2{:, 2});
+    resid = cellfun(fun, resid, 'uni', false);
     
     % plots
     K = 1;
     color = colors(p + 1, :);
     
     bins = [-1 : 6, 8];
-    doPlots(log2(gmr), bins, 'Geometric mean firing rate');
+    gmr = cellfun(@log2, props(:, 1), 'uni', false);
+    doPlots(gmr, bins, 'Geometric mean firing rate');
     set(gca, 'xlim', bins([1 end]), 'xtick', bins, 'xticklabel', 2 .^ bins)
     
-    doPlots(log2(mr), -2 : 7, 'Minimum firing rate');
+    mr = cellfun(@log2, props(:, 2), 'uni', false);
+    doPlots(mr, -2 : 7, 'Minimum firing rate');
     set(gca, 'xtick', -1 : 6, 'xticklabel', 2 .^ (-1 : 6))
     
-    doPlots(rs, -1 : 0.2 : 1, 'Signal correlation');
-    doPlots(dp, linspace(0, pi / 2, 10), 'Difference in pref ori');
-    doPlots(d, 0 : 0.5 : 4, 'Distance');
+    doPlots(props(:, 3), -1 : 0.2 : 1, 'Signal correlation');
+    doPlots(props(:, 4), linspace(0, pi / 2, 10), 'Difference in pref ori');
+    doPlots(props(:, 5), 0 : 0.5 : 4, 'Distance');
+end
+
+subplots = get(gcf, 'children');
+hdl = get(subplots(1), 'children');
+legend(hdl(1 : 2 : end), arrayfun(@(x) sprintf('p = %d', x), 0 : pmax, 'uni', false))
+hdl = get(subplots(2), 'children');
+legend(hdl(1 : 2), {'Test set', 'Training set'})
+
+    function doPlots(x, bins, xlbl)
+        subplot(M, N, K); K = K + 1;
+        hold on
+        [mTrain, seTrain] = binnedMeanAndErrorbars(x, resid(:, 1), bins);
+        [mTest, seTest] = binnedMeanAndErrorbars(x, resid(:, 2), bins);
+        binc = makeBinned([], [], bins);
+        errorbar(binc, mTrain, seTrain, '--', 'color', color)
+        errorbar(binc, mTest, seTest, '-', 'color', color)
+        xlabel(xlbl)
+        ylabel(['Average residual ' covText{coeff + 1}])
+        set(gca, 'box', 'off')
+        axisTight
+    end
+
 end
 
 
-function doPlots(x, bins, xlbl)
-    subplot(M, N, K); K = K + 1;
-    hold on
-    [m, se, binc] = makeBinned(x, rtrain, bins, @mean, @(x) std(x) / sqrt(numel(x)));
-    errorbar(binc, m, se, '--', 'color', color)
-    [m, se, binc] = makeBinned(x, rtest, bins, @mean, @(x) std(x) / sqrt(numel(x)));
-    errorbar(binc, m, se, '-', 'color', color)
-    xlabel(xlbl)
-    ylabel(['Average residual ' covText{coeff + 1}])
-    set(gca, 'box', 'off')
-    axisTight
+function [m, se] = binnedMeanAndErrorbars(x, y, bins)
+% Compute binned means and error bars.
+%   Since the simultaneously recorded pairs aren't independent we can't
+%   just use SEM = SD / sqrt(n), since this would underestimate the true
+%   standard error. Instead we compute the binned means for each site and
+%   then take the SEM over sites. This is not the theoretically optimal
+%   solution since the binned means have different errors (they don't
+%   contain the same number of data point) and we don't do any error
+%   propagation. However, it's a conservative estimate of the SEM since the
+%   more reliable data points are given less weight than they should and we
+%   therefore overestimate the overall error.
+
+% compute overall binned means (it's the more reliable estimate than first
+% averaging sites)
+m = makeBinned(cat(1, x{:}), cat(1, y{:}), bins, @mean);
+
+% compute binned means for each site used for error bars
+ym = cellfun(@(x, y) makeBinned(x, y, bins, @mean), x, y, 'uni', false);
+ym = [ym{:}];
+se = nanstd(ym) ./ sqrt(sum(~isnan(ym), 2));
 end
 
+
+function sigma = nanstd(x)
+% Standard deviation ignoring NaNs (to avoid usage of stats toolbox).
+
+n = size(x, 1);
+sigma = zeros(n, 1);
+for i = 1 : n
+    sigma(i) = std(x(i, ~isnan(x(i, :))));
+end
 end

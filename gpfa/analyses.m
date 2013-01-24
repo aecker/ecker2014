@@ -151,7 +151,7 @@ visualize(key, trials2)
 %   * The sharp drop from within to across tetrodes remains almost
 %     entirely. Across tetrodes correlations are now 0.01 on average.
 %
-% last update: 2013-01-23
+% last update: 2013-01-24
 
 pmax = 1;
 transformNum = 2;
