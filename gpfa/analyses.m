@@ -110,7 +110,7 @@ timescales(transformNum, zscore)
 %     i.e. the peak of the distribution should be at zero and not at a
 %     non-zero value.
 %
-% last update: 2013-01-22
+% last update: 2013-01-24
 
 transformNum = 2;
 zscore = 1;

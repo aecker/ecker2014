@@ -12,10 +12,11 @@ restrictions = {sprintf('subject_id in (9, 11) AND sort_method_num = 5 AND kfold
                  struct('transform_num', transformNum, 'zscore', zscore)};
 
 rel = nc.GpfaModelSet * nc.GpfaModel & restrictions;
-[model, Y] = fetchn(rel, 'model', 'transformed_data');
+[model, Y, train] = fetchn(rel, 'model', 'transformed_data', 'train_set');
 
 % normalize latent factors
-model = cellfun(@(model, Y) normFactors(GPFA(model), Y), model, Y, 'uni', false);
+normalize = @(model, Y, ndx) normFactors(GPFA(model), Y(:, :, ndx));
+model = cellfun(normalize, model, Y, train, 'uni', false);
 
 % order factors by variance explained
 n = numel(model);
