@@ -116,6 +116,27 @@ p = 2;
 factorLoadingStruct(transformNum, zscore, p)
 
 
+%% Structure of factor loadings with respect to cell properties
+%
+% Here we correlate the factor loadings with single cell properties such as
+% mean firing rate and Fano factor.
+%
+%   * Loadings of first factor correlate positively with both firing rate
+%     and Fano factor. The same is true for the second factor but
+%     substantially weaker.
+%
+%   * Potential extensions to this analysis:
+%       - Waveform shape (narrow vs. broad spikes)
+%       - Tuning properties (width, baseline firing rate)
+%
+% last update: 2013-01-24
+
+transformNum = 2;
+zscore = 1;
+p = 2;
+factorLoadingUnitProps(transformNum, zscore, p)
+
+
 %% Visualize GPFA model
 %
 % Plot rasters for all cells and overlay the estimate of the latent factor.
