@@ -1,7 +1,5 @@
-function factorLoadingUnitProps2(transformNum, zscore, p)
-% Correlate factor loadings with single unit properties.
-%   The difference here is that this function uses properties that aren't
-%   available on a per-condition level (such as tuning parameters).
+function factorLoadingTuningProps(transformNum, zscore, p)
+% Correlate factor loadings with tuning properties.
 %
 % AE 2012-01-25
 
@@ -54,7 +52,7 @@ base = log2(base);
 % plot distribution of loadings
 sem = @(x) std(x) / sqrt(numel(x));
 for i = 1 : p
-    figure(100 * transformNum + 10 * zscore + i), clf
+    figure(1000 + 100 * transformNum + 10 * zscore + i), clf
     M = 2; N = 3; K = 1;
     
     subplot(M, N, K); K = K + 1;

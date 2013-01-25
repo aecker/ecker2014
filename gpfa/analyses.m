@@ -125,16 +125,28 @@ factorLoadingStruct(transformNum, zscore, p)
 %     and Fano factor. The same is true for the second factor but
 %     substantially weaker.
 %
+%   * Loadings of both first and second factor correlate positively with
+%     baseline firing rate (high baseline implies high firing rates).
+%   * Loadings of first and second factor decrease with increasing ration
+%     of amplitude / baseline (probably because a high ratio implies a low
+%     baseline).
+%   * Loadings of first factor do not depend on tuning width, but for
+%     second factor the loadings decrease with increasing tuning sharpness.
+%
 %   * Potential extensions to this analysis:
 %       - Waveform shape (narrow vs. broad spikes)
-%       - Tuning properties (width, baseline firing rate)
 %
-% last update: 2013-01-24
+% last update: 2013-01-25
 
 transformNum = 2;
 zscore = 1;
 p = 2;
+
+% mean firing rate, Fano factor
 factorLoadingUnitProps(transformNum, zscore, p)
+
+% tuning properties: baseline, amplitude / baseline, kappa
+factorLoadingTuningProps(transformNum, zscore, p)
 
 
 %% Visualize GPFA model
