@@ -184,7 +184,7 @@ visualize(key, trials2)
 %
 % last update: 2013-01-24
 
-pmax = 1;
+pmax = 3;
 transformNum = 2;
 zscore = 1;
 coeff = 1;

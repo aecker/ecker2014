@@ -13,7 +13,8 @@ M = 3;
 N = 2;
 covText = {'covariance', 'correlation'};
 colors = lines(pmax + 1);
-
+hdl1 = zeros(pmax + 1, 2);
+hdl2 = hdl1;
 for p = 0 : pmax
 
     restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
@@ -58,24 +59,21 @@ for p = 0 : pmax
     set(gca, 'xtick', -1 : 6, 'xticklabel', 2 .^ (-1 : 6))
     
     doPlots(props(:, 3), -1 : 0.2 : 1, 'Signal correlation');
-    doPlots(props(:, 4), linspace(0, pi / 2, 10), 'Difference in pref ori');
-    doPlots(props(:, 5), 0 : 0.5 : 4, 'Distance');
+    hdl1(p + 1, :) = doPlots(props(:, 4), linspace(0, pi / 2, 10), 'Difference in pref ori');
+    hdl2(p + 1, :) = doPlots(props(:, 5), 0 : 0.5 : 4, 'Distance');
 end
 
-subplots = get(gcf, 'children');
-hdl = get(subplots(1), 'children');
-legend(hdl(1 : 2 : end), arrayfun(@(x) sprintf('p = %d', x), 0 : pmax, 'uni', false))
-hdl = get(subplots(2), 'children');
-legend(hdl(1 : 2), {'Test set', 'Training set'})
+legend(hdl1(:, 2), arrayfun(@(x) sprintf('p = %d', x), 0 : pmax, 'uni', false))
+legend(hdl2(1, :), {'Test set', 'Training set'})
 
-    function doPlots(x, bins, xlbl)
+    function hdl = doPlots(x, bins, xlbl)
         subplot(M, N, K); K = K + 1;
         hold on
         [mTrain, seTrain] = binnedMeanAndErrorbars(x, resid(:, 1), bins);
         [mTest, seTest] = binnedMeanAndErrorbars(x, resid(:, 2), bins);
         binc = makeBinned([], [], bins);
-        errorbar(binc, mTrain, seTrain, '--', 'color', color)
-        errorbar(binc, mTest, seTest, '-', 'color', color)
+        hdl = [errorbar(binc, mTrain, seTrain, '--', 'color', color), ...
+               errorbar(binc, mTest, seTest, '-', 'color', color)];
         xlabel(xlbl)
         ylabel(['Average residual ' covText{coeff + 1}])
         set(gca, 'box', 'off')
