@@ -82,15 +82,17 @@ analyzeTransforms(byTrial)
 
 %% Timescale of latent factor (for one-factor GPFA model)
 %
-% Here we look at the timescale of the latent factor. It's modeled as a
+% Here we look at the timescale of the latent factors. It's modeled as a
 % Gaussian process with Gaussian time kernel, so a typical temporal "bump"
-% will last for ca. 4x the timescale value.
+% will last for ca. 2x the timescale value.
 %
-% last update: 2013-01-09
+% last update: 2013-01-28
 
 transformNum = 2;
 zscore = 1;
-timescales(transformNum, zscore)
+timescales(transformNum, zscore, 1)
+timescales(transformNum, zscore, 2)
+timescales(transformNum, zscore, 3)
 
 
 %% Distribution of factor loadings for first factor
