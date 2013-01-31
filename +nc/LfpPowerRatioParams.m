@@ -1,7 +1,10 @@
 %{
 nc.LfpPowerRatioParams (manual) # LFP power ratio parameters
 
-split_freq  : double    # frequency at which to split power spectrum
+low_min     : double    # low frequency min
+low_max     : double    # low frequency max
+high_min    : double    # high frequency min
+high_max    : double    # high frequency max
 ---
 %}
 

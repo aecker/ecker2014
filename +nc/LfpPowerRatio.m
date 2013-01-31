@@ -32,12 +32,11 @@ classdef LfpPowerRatio < dj.Relvar
 
             % compute power ratio
             window = 2 ^ round(log2(30 * Fs));  % ca. 30 sec
-            fmax = 100;                         % max. frequency for LFP
             [Pxx, w] = pwelch(lfp, window);
             f = w / (2 * pi) * Fs;
-            below = f < key.split_freq;
-            above = (f > key.split_freq & f < 49.8) ... exclude 50 & 60 Hz (line noise)
-                | (f > 50.2 & f < 59.8) | (f > 60.2 & f < fmax);
+            below = f > key.low_min & f < key.low_max;
+            above = (f > key.high_min & f < key.high_max) & ... exclude 50 & 60 Hz (line noise)
+                ~(f > 49.8 & f < 50.2) & ~(f > 59.8 & f < 60.2);
             
             tuple = key;
             tuple.power_ratio = log2(mean(Pxx(below)) / mean(Pxx(above)));
