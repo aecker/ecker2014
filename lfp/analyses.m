@@ -15,6 +15,9 @@ run ~/lab/projects/anesthesia/code/setPath.m
 %   * The monkey with higher power ratio has higher correlations on
 %     average. This might as well be by chance. Since the effect is not
 %     there within monkeys I don't really buy into it at this stage.
+%   * There is am almost perfect correlation for the first five sessions in
+%     both monkeys. It's possible that there is something special about the
+%     superficial layers.
 %
 % Issues:
 %   * This is a very preliminary analysis. I currently just average across
@@ -23,9 +26,12 @@ run ~/lab/projects/anesthesia/code/setPath.m
 %     spontaneous. Thus there are different fractions of stimulus/no
 %     stimulus, eye movements in the awake data, etc.
 %
-% last update: 2013-01-30
+% last update: 2013-02-01
 
 anesthesiaDepth
+
+% plot only the first five sessions
+anesthesiaDepthFirstSessions
 
 
 %% LFP power spectra
