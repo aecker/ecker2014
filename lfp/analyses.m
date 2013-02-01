@@ -42,3 +42,27 @@ anesthesiaDepthFirstSessions
 % last update: 2013-01-31
 
 plotSpectra
+
+
+%% Correlation between LFP and first GPFA factor
+%
+% Compute the correlation between the low-pass filtered LFP and the first
+% factor of the GPFA model. The average (over trials, for each condition)
+% of the LFP is subtracted.
+%
+%   * The average correlation is around 0.2 when using an LFP frequency
+%     band between 0 and 2-3 Hz.
+%   * The best correlation is achieved by the log(x + 0.1) transform and
+%     when subtracting the mean on each trial from both LFP and latent
+%     factor.
+%
+% Potential issues:
+%   * As usual I have to flip the sign of the latent factor by some
+%     convention. I'm using the usual convention that the majority of cells
+%     has a positive factor loading. I think this shouldn't cause any
+%     spurious correlations with the LFP.
+%
+% last update: 2013-02-01
+
+gpfa
+
