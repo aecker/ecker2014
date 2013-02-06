@@ -34,6 +34,33 @@ anesthesiaDepth
 anesthesiaDepthFirstSessions
 
 
+%% Correlation between depth of anesthesia and NC within sessions
+%
+% Here we do the same analysis as above but for different time periods
+% within a session. For each block we compute two measures: (1) LFP power
+% ratio, (2) noise correlations. We then look at the deviations of each
+% from the session average. 
+%
+%   * The level of noise correlations is positively correlated with the
+%     depth of anesthesia index (ratio of low vs. high frequency LFP
+%     power).
+%
+% Issues:
+%   * The effect isn't too robust against changes in parameter settings, so
+%     it's possible that I'm looking at a statistical artifact. Need to
+%     check with the third monkey for sure.
+%   * The effect is stronger when all units are included and not only the
+%     well isolated and stable ones. Could be due to an increase in
+%     statistical power or an artifact.
+%
+% last update: 2013-02-06
+
+anesthesiaDepthWithinSession
+
+% only first five sessions of each monkey (superficial layers)
+anesthesiaDepthWithinSession(true)
+
+
 %% LFP power spectra
 %
 % Plot power spectra grouped by monkeys and tetrodes. Very preliminary,
