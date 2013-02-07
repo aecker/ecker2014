@@ -134,8 +134,8 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             models = [];
             for p = 0 : key.max_latent_dim
                 for k = 1 : key.kfold_cv
-                    test = part(k) + 1 : part(k + 1);
-                    train = setdiff(1 : nTrials, test);
+                    train = part(k) + 1 : part(k + 1);
+                    test = setdiff(1 : nTrials, train);
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
                     model = model.fit(Y(:, :, train), p, 'hist');
                     
