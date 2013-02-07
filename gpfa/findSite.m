@@ -7,7 +7,7 @@ restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2'
                  struct('transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
 
 counts = pro(nc.GpfaModelSet, nc.GpfaUnits, 'count(1) -> n');
-rel = (nc.GpfaCovExpl * counts) & restrictions & 'latent_dim in (0, 1) AND n >= 20';
+rel = (nc.GpfaParams * nc.GpfaCovExpl * counts) & restrictions & 'latent_dim in (0, 1) AND n >= 20';
 data = fetch(rel, '*');
 n = numel(data);
 data = dj.struct.sort(data, {'latent_dim', 'cv_run', 'stim_start_time'});

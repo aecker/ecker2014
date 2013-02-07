@@ -8,7 +8,7 @@ mr = zeros(1, nTrans);
 for i = 1 : nTrans
     key = struct('sort_method_num', 5, 'zscore', 1, 'transform_num', i, ...
         'min_freq', 0, 'max_freq', 2);
-    r = -fetchn(nc.LfpGpfaCorr & key, 'corr_trial');
+    r = -fetchn(nc.GpfaParams * nc.LfpGpfaCorr & key, 'corr_trial');
     mr(i) = mean(r);
     if i == 4
         subplot(1, 2, 2)

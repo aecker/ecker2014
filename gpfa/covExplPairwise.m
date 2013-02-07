@@ -13,7 +13,7 @@ function covExplPairwise(transformNum, zscore, byTrial, coeff)
 restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
                  struct('transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
 
-rel = nc.GpfaCovExpl & restrictions;
+rel = nc.GpfaParams * nc.GpfaCovExpl & restrictions;
 n = count(rel & 'latent_dim = 0');
 pmax = count(rel) / n - 1;
 data = fetch(rel, '*');

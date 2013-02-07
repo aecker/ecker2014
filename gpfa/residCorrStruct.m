@@ -23,7 +23,7 @@ for p = 0 : pmax
     offdiag = @(C) C(~tril(ones(size(C))));
     corr = @(C) C ./ sqrt(diag(C) * diag(C)');
     
-    keys = fetch(nc.GpfaCovExpl & restrictions & 'cv_run = 1')';
+    keys = fetch(nc.GpfaParams * nc.GpfaCovExpl & restrictions & 'cv_run = 1')';
     props = cell(numel(keys), 5);
     resid = cell(numel(keys), 2);
     for iKey = 1 : numel(keys);

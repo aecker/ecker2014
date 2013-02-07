@@ -22,7 +22,7 @@ else
     restrictions = varargin;
 end
 
-rel = nc.GpfaCovExpl & restrictions;
+rel = nc.GpfaParams * nc.GpfaCovExpl & restrictions;
 n = count(rel & 'latent_dim = 0');
 pmax = count(rel) / n - 1;
 data = fetch(rel, '*');

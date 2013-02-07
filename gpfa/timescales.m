@@ -9,7 +9,7 @@ binSize = 100;
 restrictions = {sprintf('subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2 AND cv_run = 1 AND bin_size = %d AND latent_dim = %d', binSize, pmax), ...
                  struct('transform_num', transformNum, 'zscore', zscore)};
 
-rel = nc.GpfaModel & restrictions;
+rel = nc.GpfaParams * nc.GpfaModel & restrictions;
 model = fetchn(rel, 'model');
 
 % Plot

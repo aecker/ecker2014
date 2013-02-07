@@ -18,7 +18,7 @@ else
     restrictions = varargin;
 end
 
-rel = (nc.GpfaModelSet * nc.GpfaCovExpl) & restrictions;
+rel = (nc.GpfaParams * nc.GpfaModelSet * nc.GpfaCovExpl) & restrictions;
 
 n = count(rel & 'latent_dim = 0');
 pmax = 10;

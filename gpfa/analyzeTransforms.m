@@ -18,7 +18,7 @@ restrictions = {'subject_id IN (9, 11) AND sort_method_num = 5', struct('kfold_c
 latent = 'latent_dim = 1';
 
 nTrans = count(nc.DataTransforms);
-nUnits = count(nc.GpfaUnits & restrictions) / nTrans / 2;
+nUnits = count(nc.GpfaParams * nc.GpfaUnits & restrictions) / nTrans / 2;
 rsq = zeros(nUnits, nTrans, 2);
 mfr = zeros(nUnits, nTrans, 2);
 tr = 1;
@@ -27,7 +27,8 @@ tr = 1;
 for transform = fetch(nc.DataTransforms)'
     for z = [0 1]
         unit = 0;
-        for modelset = fetch(nc.GpfaModelSet & restrictions & transform & struct('zscore', z), ...
+        for modelset = fetch(nc.GpfaParams * nc.GpfaModelSet ...
+                & restrictions & transform & struct('zscore', z), ...
                 'transformed_data', 'raw_data', 'bin_size')'
             rsqi = 0;
             mfri = 0;

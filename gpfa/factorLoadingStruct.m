@@ -11,7 +11,7 @@ binSize = 100;
 restrictions = {sprintf('subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2 AND cv_run = 1 AND bin_size = %d AND latent_dim = %d', binSize, p), ...
                  struct('transform_num', transformNum, 'zscore', zscore)};
 
-rel = nc.GpfaModelSet * nc.GpfaModel & restrictions;
+rel = nc.GpfaParams * nc.GpfaModelSet * nc.GpfaModel & restrictions;
 [model, Y, train] = fetchn(rel, 'model', 'transformed_data', 'train_set');
 
 % normalize latent factors

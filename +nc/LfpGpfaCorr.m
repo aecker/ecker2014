@@ -34,8 +34,6 @@ classdef LfpGpfaCorr < dj.Relvar & dj.AutoPopulate
         function makeTuples(self, key)
             
             modelKey = key;
-            modelKey.kfold_cv = 1;
-            modelKey.max_latent_dim = 1;
             modelKey.latent_dim = 1;
             
             stimTime = fetch1(nc.Gratings & key, 'stimulus_time');

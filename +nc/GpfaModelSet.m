@@ -72,10 +72,11 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             sigmaN = 1e-3;  % GP innovation noise
             tol = 1e-4;     % convergence criterion for fitting
             offset = 30;    % offset from stimulus onset to account for latencies
+            par = fetch(nc.GpfaParams & key);
             
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
-            nBins = fix(stimTime / key.bin_size);
-            bins = offset + (0 : nBins) * key.bin_size;
+            nBins = fix(stimTime / par.bin_size);
+            bins = offset + (0 : nBins) * par.bin_size;
             
             % get spikes
             validTrials = (stimulation.StimTrials(key) * nc.GratingTrials(key)) & 'valid_trial = true';
@@ -94,7 +95,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             
             % remove non-spiking and low-firing-rate cells
             minRate = 0.5;  % spikes/sec
-            m = mean(Y(1 : nUnits, :), 2) / key.bin_size * 1000;
+            m = mean(Y(1 : nUnits, :), 2) / par.bin_size * 1000;
             unitIds = find(m > minRate);
             Y = Y(unitIds, :, :);
             Yraw = Y;
@@ -103,7 +104,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             Y = transform(nc.DataTransforms & key, Y);
             
             % normalize?
-            if key.zscore
+            if par.zscore
                 sd = std(Y(1 : end, :), [], 2);
                 Y = bsxfun(@rdivide, Y, sd);
             else
@@ -128,12 +129,12 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
 
             % partition data for cross-validation
             nTrials = size(Y, 3);
-            part = round(linspace(0, nTrials, key.kfold_cv + 1));
+            part = round(linspace(0, nTrials, par.kfold_cv + 1));
             
             % fit GPFA models
             models = [];
-            for p = 0 : key.max_latent_dim
-                for k = 1 : key.kfold_cv
+            for p = 0 : par.max_latent_dim
+                for k = 1 : par.kfold_cv
                     train = part(k) + 1 : part(k + 1);
                     test = setdiff(1 : nTrials, train);
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);

@@ -7,7 +7,7 @@ binSize = 100;
 restrictions = {sprintf('subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2 AND bin_size = %d', binSize), ...
                  struct('transform_num', transformNum, 'zscore', zscore)};
 % cv_run = 1 AND  AND latent_dim = %d
-groupKeys = fetch(ae.SpikesByTrialSet & (nc.GpfaModelSet & restrictions));
+groupKeys = fetch(ae.SpikesByTrialSet & (nc.GpfaParams * nc.GpfaModelSet & restrictions));
 n = numel(groupKeys);
 C = cell(n, 1);
 base = cell(n, 1);
@@ -16,8 +16,8 @@ ampl = cell(n, 1);
 for iGroup = 1 : n
     key = groupKeys(iGroup);
     key.latent_dim = p;
-    modelKeys = fetch(nc.GpfaModel & key & restrictions);
-    nUnits = max(fetchn(nc.GpfaUnits & key & restrictions, 'unit_id'));
+    modelKeys = fetch(nc.GpfaParams * nc.GpfaModel & key & restrictions);
+    nUnits = max(fetchn(nc.GpfaParams * nc.GpfaUnits & key & restrictions, 'unit_id'));
     nModels = numel(modelKeys);
     Ctmp = NaN(nUnits, p, nModels);
     for iModel = 1 : nModels
@@ -38,7 +38,7 @@ for iGroup = 1 : n
     C{iGroup} = Ctmp(~isnan(Ctmp(:, 1)), :);
     
     % get unit properties
-    propsRel = nc.OriTuning & (nc.GpfaUnits & key & restrictions);
+    propsRel = nc.OriTuning & (nc.GpfaParams * nc.GpfaUnits & key & restrictions);
     [base{iGroup}, kappa{iGroup}, ampl{iGroup}] = ...
         fetchn(propsRel, 'ori_baseline', 'ori_kappa', 'ori_ampl');
 end
