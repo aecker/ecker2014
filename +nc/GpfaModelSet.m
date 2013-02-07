@@ -93,10 +93,11 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 end
             end
             
-            % remove non-spiking and low-firing-rate cells
+            % remove low-firing-rate and unstable cells
             minRate = 0.5;  % spikes/sec
             m = mean(Y(1 : nUnits, :), 2) / par.bin_size * 1000;
-            unitIds = find(m > minRate);
+            unitIds = fetchn(nc.UnitStats & key & sprintf('stability < %f', par.min_stability), 'unit_id');
+            unitIds = unitIds(m(unitIds) > minRate);
             Y = Y(unitIds, :, :);
             Yraw = Y;
             
