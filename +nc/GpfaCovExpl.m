@@ -21,7 +21,7 @@ rel_diff_test       : double        # relative difference for test set
 classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.GpfaCovExpl');
-        popRel = nc.GpfaModelSet;
+        popRel = nc.GpfaModelSet & 'kfold_cv > 1';
     end
     
     methods 
