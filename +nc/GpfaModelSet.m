@@ -71,7 +71,6 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             % parameters
             sigmaN = 1e-3;  % GP innovation noise
             tol = 1e-4;     % convergence criterion for fitting
-            pmax = 10;      % max number of latent factors
             offset = 30;    % offset from stimulus onset to account for latencies
             
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
@@ -133,7 +132,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             
             % fit GPFA models
             models = [];
-            for p = 0 : pmax
+            for p = 0 : key.max_latent_dim
                 for k = 1 : key.kfold_cv
                     test = part(k) + 1 : part(k + 1);
                     train = setdiff(1 : nTrials, test);

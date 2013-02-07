@@ -20,7 +20,8 @@ p_trial         : double    # p value
 classdef LfpGpfaCorr < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.LfpGpfaCorr');
-        popRel = (ae.Lfp * nc.Gratings * ae.SpikesByTrialSet * nc.DataTransforms * nc.GpfaParams) & nc.GpfaModelSet;
+        popRel = (ae.Lfp * nc.Gratings * ae.SpikesByTrialSet * nc.DataTransforms * nc.GpfaParams) ...
+            & nc.GpfaModelSet & 'kfold_cv = 1 AND max_latent_dim = 1';
     end
     
     methods
@@ -32,29 +33,30 @@ classdef LfpGpfaCorr < dj.Relvar & dj.AutoPopulate
     methods(Access = protected)
         function makeTuples(self, key)
             
-            key2 = key;
-            key2.cv_run = 1;
-            key2.latent_dim = 1;
+            modelKey = key;
+            modelKey.kfold_cv = 1;
+            modelKey.max_latent_dim = 1;
+            modelKey.latent_dim = 1;
             
-            stimTime = fetch1(nc.Gratings & key2, 'stimulus_time');
-            binSize = fetch1(nc.GpfaModelSet & key2, 'bin_size', 1);
+            stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
+            binSize = fetch1(nc.GpfaModelSet & modelKey, 'bin_size', 1);
             Fs = 1000 / binSize;
             nBins = round(stimTime / binSize);
             
             % extract LFP
-            [lfp, Flfp, t0] = fetch1(ae.Lfp & key2, 'lfp', 'lfp_sampling_rate', 'lfp_t0');
+            [lfp, Flfp, t0] = fetch1(ae.Lfp & key, 'lfp', 'lfp_sampling_rate', 'lfp_t0');
             [p, q] = rat(Fs / Flfp, 1e-3);
             assert(p < 100 && q < 100, 'Problem with resampling LFP!')
             lfp = resample(lfp, p, q);
             
-            cond = fetchn(nc.GpfaModel & key2, 'condition_num');
-            allTrials = sort(fetchn(nc.GratingTrials * nc.GpfaModel & key2, 'trial_num'));
+            cond = fetchn(nc.GpfaModel & modelKey, 'condition_num');
+            allTrials = sort(fetchn(nc.GratingTrials * nc.GpfaModel & modelKey, 'trial_num'));
             nCond = numel(cond);
             nTrials = numel(allTrials);
             X = zeros(nBins, nTrials);
             Z = zeros(nBins, nTrials);
             for iCond = 1 : nCond
-                condKey = key2;
+                condKey = modelKey;
                 condKey.condition_num = cond(iCond);
                 trials = sort(fetchn(nc.GratingTrials & condKey, 'trial_num'));
                 [~, trials] = ismember(trials, allTrials);
