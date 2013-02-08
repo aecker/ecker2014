@@ -72,7 +72,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             sigmaN = 1e-3;  % GP innovation noise
             tol = 1e-4;     % convergence criterion for fitting
             offset = 30;    % offset from stimulus onset to account for latencies
-            par = fetch(nc.GpfaParams & key);
+            par = fetch(nc.GpfaParams & key, '*');
             
             stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
             nBins = fix(stimTime / par.bin_size);
@@ -96,7 +96,8 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             % remove low-firing-rate and unstable cells
             minRate = 0.5;  % spikes/sec
             m = mean(Y(1 : nUnits, :), 2) / par.bin_size * 1000;
-            unitIds = fetchn(nc.UnitStats & key & sprintf('stability < %f', par.min_stability), 'unit_id');
+            unitKey = sprintf('spike_count_start = 30 AND stability < %f', par.min_stability);
+            unitIds = fetchn(nc.UnitStats & key & unitKey, 'unit_id');
             unitIds = unitIds(m(unitIds) > minRate);
             Y = Y(unitIds, :, :);
             Yraw = Y;

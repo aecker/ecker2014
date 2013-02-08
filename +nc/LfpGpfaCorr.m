@@ -37,7 +37,7 @@ classdef LfpGpfaCorr < dj.Relvar & dj.AutoPopulate
             modelKey.latent_dim = 1;
             
             stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
-            binSize = fetch1(nc.GpfaModelSet & modelKey, 'bin_size', 1);
+            binSize = fetch1(nc.GpfaParams * nc.GpfaModelSet & modelKey, 'bin_size', 1);
             Fs = 1000 / binSize;
             nBins = round(stimTime / binSize);
             

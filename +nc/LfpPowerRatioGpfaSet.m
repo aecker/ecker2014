@@ -16,7 +16,7 @@ classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
         table = dj.Table('nc.LfpPowerRatioGpfaSet');
         popRel = cont.Lfp * ae.SpikesByTrialSet * nc.Gratings ...
             * nc.GpfaParams * nc.DataTransforms * nc.LfpPowerRatioGpfaParams ...
-            & 'max_latent_dim = 1 AND kfold_cv = 1 AND  zscore = 1 AND subject_id IN (9, 11) AND sort_method_num = 5';
+            & nc.GpfaModelSet & 'max_latent_dim = 1 AND kfold_cv = 1 AND  zscore = 1 AND subject_id IN (9, 11) AND sort_method_num = 5';
     end
     
     methods 
