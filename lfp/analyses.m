@@ -44,16 +44,20 @@ anesthesiaDepthFirstSessions
 %   * The level of noise correlations is positively correlated with the
 %     depth of anesthesia index (ratio of low vs. high frequency LFP
 %     power).
+%   * The variance of the first GPFA factor is also positively correlated
+%     with the depth of anesthesia. This effect is in fact stronger than
+%     for the average correlations, which could be because it's
+%     statistically more efficient way to estimate.
 %
 % Issues:
 %   * The effect isn't too robust against changes in parameter settings, so
 %     it's possible that I'm looking at a statistical artifact. Need to
 %     check with the third monkey for sure.
-%   * The effect is stronger when all units are included and not only the
-%     well isolated and stable ones. Could be due to an increase in
+%   * The effect is stronger when all stable units are included and not
+%     only the well isolated ones. Could be due to an increase in
 %     statistical power or an artifact.
 %
-% last update: 2013-02-06
+% last update: 2013-02-08
 
 anesthesiaDepthWithinSession
 
