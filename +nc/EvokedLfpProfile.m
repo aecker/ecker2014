@@ -24,6 +24,12 @@ classdef EvokedLfpProfile < dj.Relvar & dj.AutoPopulate
     methods (Access = protected)
         function makeTuples(self, key)
             
+            % some parameters
+            tuple = key;
+            tuple.start_time = -1000;
+            tuple.stop_time = 3000;
+            tuple.lfp_sampling_rate = 2 * key.max_freq;
+            
             rel = cont.Lfp * acq.EphysStimulationLink * nc.Gratings * ...
                 acq.Stimulation * nc.EvokedLfpParams ...
                 & key & ae.ProjectsStimulation & 'exp_type = "AcuteGratingExperiment"';
@@ -39,7 +45,7 @@ classdef EvokedLfpProfile < dj.Relvar & dj.AutoPopulate
             nTet = numel(tetrodes);
 
             % insert parent key and link tables
-            self.insert(key);
+            self.insert(tuple);
             for tet = tetrodes
                 k = key;
                 k.electrode_num = tet;

@@ -46,7 +46,6 @@ classdef EvokedLfp < dj.Relvar
 
             % insert info database
             tuple = key;
-            tuple.lfp_sampling_rate = 2 * lowpass;
             tuple.evoked_lfp = lfp;
             tuple.avg_evoked_lfp = mean(lfp, 2);
             self.insert(tuple);
