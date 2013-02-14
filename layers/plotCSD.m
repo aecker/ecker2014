@@ -4,6 +4,7 @@ function plotCSD(subjectId)
 
 if ~nargin, subjectId = 11; end
 key.subject_id = subjectId;
+key.min_freq = -1;
 data = fetch(nc.CSD & key, '*');
 
 figure(1), clf

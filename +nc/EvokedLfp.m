@@ -41,8 +41,10 @@ classdef EvokedLfp < dj.Relvar
             % bandpass-filter and resample
             [p, q] = rat(2 * lowpass / Fs);
             lfp = resample(lfp, p, q);
-            [b, a] = butter(5, highpass / lowpass, 'high');
-            lfp = filtfilt(b, a, lfp);
+            if highpass > 0
+                [b, a] = butter(5, highpass / lowpass, 'high');
+                lfp = filtfilt(b, a, lfp);
+            end
 
             % insert info database
             tuple = key;

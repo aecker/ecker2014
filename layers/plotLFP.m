@@ -2,7 +2,7 @@ function plotLFP(subjectId)
 
 if ~nargin, subjectId = 11; end
 key.subject_id = subjectId;
-key.min_freq = 2;
+key.min_freq = -1;
 key.max_freq = 40;
 
 tet = fetchn(nc.EvokedLfpElectrodes & key, 'electrode_num');
