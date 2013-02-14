@@ -32,3 +32,27 @@ run ~/lab/projects/anesthesia/code/setPath.m
 
 plotCSD
 
+
+%% CSD debugging in first monkey
+%
+% We don't get a decent CSD profile for the first monkey, presumably
+% because of the way we referenced in this monkey: we used a tetrode in
+% white matter as the reference. Presumably that tetrode changed its
+% position due to tissue movement when adjusting the other tetrodes,
+% resulting quite different evoked LFP responses from one recording to the
+% next. Also, it could be picking up different signals related to how deep
+% the anesthesia was in different sessions.
+%
+% The script below illustrates the average evoked LFP responses for each
+% recording along with the first two components of a space-time SVD, which
+% pretty nicely capture the differences in the on responses from one
+% recording to the next. Since it doesn't change smoothly over time but
+% seems to oscillate back and forth it seems unplausible that these changes
+% are actually related to the depth in cortex.
+%
+% last update: 2013-02-14
+
+plotLFP(9)
+plotLFP(11)
+
+
