@@ -6,6 +6,7 @@ nc.GpfaModelSet (computed) # Gaussian process factor analysis model
 -> nc.GpfaParams
 -> nc.DataTransforms
 ---
+-> nc.UnitStatsSet
 sigma_n             : double            # GP innovation noise
 tolerance           : double            # convergence tolerance for EM algorithm
 start_seed          : bigint            # random number generator seed
@@ -20,10 +21,11 @@ num_trials          : tinyint unsigned  # number of trials in model
 classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.GpfaModelSet');
-        popRel = ae.SpikesByTrialSet * nc.DataTransforms ...
+        popRel = ae.SpikesByTrialSet * nc.DataTransforms * nc.GpfaParams ...
             * pro(nc.GratingConditions, nc.GratingTrials * stimulation.StimTrials('valid_trial=true'), 'count(subject_id) -> n_trials') ...
-            * (pro(ephys.SpikeSet, ephys.Spikes, 'count(subject_id) -> n_units') * nc.GpfaParams) ...
-            & 'n_units > 10 AND n_trials >= 10';
+            * pro(ephys.SpikeSet, ephys.Spikes, 'count(subject_id) -> n_units') ...
+            & 'n_units > 10 AND n_trials >= 10' ...
+            & (nc.UnitStats * nc.Gratings & 'spike_count_start = 30 AND spike_count_end = stimulus_time + 30');
             % excluding tuples with less or equal neurons as latent
             % dimensions. can't exclude all of them since sometimes some
             % units don't fire spikes during the stimulus but we have no
@@ -93,15 +95,33 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 end
             end
             
-            % remove low-firing-rate and unstable cells
+            % remove unstable cells
+            stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
+            set = key;
+            set.spike_count_start = offset;
+            set.spike_count_end = stimTime + offset;
+            unitKey = sprintf('stability < %f', par.min_stability);
+            unitIds = fetchn(nc.UnitStats * nc.Gratings & set & unitKey, 'unit_id');
+
+            % remove low-firing rate cells
             minRate = 0.5;  % spikes/sec
-            m = mean(Y(1 : nUnits, :), 2) / par.bin_size * 1000;
-            unitKey = sprintf('spike_count_start = 30 AND stability < %f', par.min_stability);
-            unitIds = fetchn(nc.UnitStats & key & unitKey, 'unit_id');
-            unitIds = unitIds(m(unitIds) > minRate);
+            m = mean(Y(unitIds, :), 2) / par.bin_size * 1000;
+            unitIds = unitIds(m > minRate);
+
+            % partition data for cross-validation
+            nTrials = size(Y, 3);
+            part = round(linspace(0, nTrials, par.kfold_cv + 1));
+
+            % remove cells with zero variance in at least one set
+            for k = 1 : par.kfold_cv
+                train = part(k) + 1 : part(k + 1);
+                Yk = reshape(Y(unitIds, :, train), numel(unitIds), []);
+                sd = std(Yk, [], 2);
+                unitIds = unitIds(sd > 0);
+            end
             Y = Y(unitIds, :, :);
             Yraw = Y;
-            
+
             % transform data
             Y = transform(nc.DataTransforms & key, Y);
             
@@ -118,7 +138,6 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             seed = hex2dec(hash(1 : 8));
 
             % insert into database
-            set = key;
             set.sigma_n = sigmaN;
             set.tolerance = tol;
             set.start_seed = seed;
@@ -129,13 +148,10 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
             set.num_units = numel(unitIds);
             set.num_trials = nTrials;
 
-            % partition data for cross-validation
-            nTrials = size(Y, 3);
-            part = round(linspace(0, nTrials, par.kfold_cv + 1));
-            
             % fit GPFA models
             models = [];
             for p = 0 : par.max_latent_dim
+                fprintf('p = %d\n', p)
                 for k = 1 : par.kfold_cv
                     train = part(k) + 1 : part(k + 1);
                     test = setdiff(1 : nTrials, train);
