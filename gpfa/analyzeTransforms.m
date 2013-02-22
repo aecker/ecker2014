@@ -1,24 +1,33 @@
-function analyzeTransforms(byTrial)
+function analyzeTransforms(byTrial, varargin)
 % Evaluate performance of different transformations.
-%   analyzeTransforms()
+%   analyzeTransforms(byTrial, 'name', value, ...)
 %
 %   Here I compute the R^2 between predicted and observed data for the
 %   one-factor GPFA model for each cell as a function of the various data
 %   transformations that I used for fitting.
 %   
-% AE 2012-01-08
+% AE 2012-02-21
 
 % use spike counts for entire trial or each bin?
 if ~nargin
     byTrial = false;
 end
 
-kfold = 2;
-restrictions = {'subject_id IN (9, 11) AND sort_method_num = 5', struct('kfold_cv', kfold)};
-latent = 'latent_dim = 1';
+% key for analysis parameters/subjects etc.
+key.subject_id = [9 11];
+key.sort_method_num = 5;
+key.bin_size = 100;
+key.kfold_cv = 2;
+key.max_latent_dim = 1;
+key.latent_dim = 1;
+key.min_stability = 0.1;
+key = genKey(key, varargin{:});
+
+kfold = unique([key.kfold_cv]);
+assert(isscalar(kfold), 'kfold_cv must be specified uniquely!')
 
 nTrans = count(nc.DataTransforms);
-nUnits = count(nc.GpfaParams * nc.GpfaUnits & restrictions) / nTrans / 2;
+nUnits = count(nc.GpfaParams * nc.GpfaUnits & key) / nTrans / 2;
 rsq = zeros(nUnits, nTrans, 2);
 mfr = zeros(nUnits, nTrans, 2);
 tr = 1;
@@ -28,11 +37,11 @@ for transform = fetch(nc.DataTransforms)'
     for z = [0 1]
         unit = 0;
         for modelset = fetch(nc.GpfaParams * nc.GpfaModelSet ...
-                & restrictions & transform & struct('zscore', z), ...
+                & key & transform & struct('zscore', z), ...
                 'transformed_data', 'raw_data', 'bin_size')'
             rsqi = 0;
             mfri = 0;
-            for run = fetch(nc.GpfaModel & modelset & latent, 'model', 'test_set')'
+            for run = fetch(nc.GpfaModel & modelset & key, 'model', 'test_set')'
                 model = GPFA(run.model);
                 Y = modelset.transformed_data(:, :, run.test_set);
                 Ypred = model.predict(Y);
