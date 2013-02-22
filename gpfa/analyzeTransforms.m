@@ -31,17 +31,25 @@ nUnits = count(nc.GpfaParams * nc.GpfaUnits & key) / nTrans / 2;
 rsq = zeros(nUnits, nTrans, 2);
 mfr = zeros(nUnits, nTrans, 2);
 tr = 1;
+order = 'ORDER BY stim_start_time, condition_num';
 
 % Compute R^2 for different transforms
 for transform = fetch(nc.DataTransforms)'
     for z = [0 1]
         unit = 0;
-        for modelset = fetch(nc.GpfaParams * nc.GpfaModelSet ...
-                & key & transform & struct('zscore', z), ...
-                'transformed_data', 'raw_data', 'bin_size')'
+        modelKey = dj.struct.join(struct('zscore', z), key);
+        modelKey = dj.struct.join(modelKey, transform);
+        modelsets = fetch(nc.GpfaParams * nc.GpfaModelSet & modelKey, ...
+            'transformed_data', 'raw_data', 'bin_size', order);
+        runs = fetch(nc.GpfaParams * nc.GpfaModel & modelKey, 'model', 'test_set', order);
+        runs = reshape(runs, kfold, []);
+        n = numel(modelsets);
+        for iModel = 1 : n
+            modelset = modelsets(iModel);
             rsqi = 0;
             mfri = 0;
-            for run = fetch(nc.GpfaModel & modelset & key, 'model', 'test_set')'
+            for iRun = 1 : kfold
+                run = runs(iRun, iModel);
                 model = GPFA(run.model);
                 Y = modelset.transformed_data(:, :, run.test_set);
                 Ypred = model.predict(Y);
