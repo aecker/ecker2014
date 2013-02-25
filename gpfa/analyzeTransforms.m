@@ -63,8 +63,7 @@ for z = 1 : 2
         subplot(2, 2, i)
         plot(fr(:, i, z), ve(:, i, z), '.k', 'markersize', 1)
         hold on
-        [~, bin] = histc(fr(:, i, z), bins);
-        m = accumarray(bin, ve(:, i, z), [numel(bins) - 1, 1], @mean);
+        m = makeBinned(fr(:, i, z), ve(:, i, z), bins, @mean, 'include');
         plot(binsc, m, '*-r')
         set(gca, 'xscale', 'log', 'yscale', 'linear', 'box', 'off')
         axis tight
@@ -89,8 +88,7 @@ subplot(2, 1, 2), hold all
 linestyle = {'.-', '.--'};
 for i = 1 : nTrans
     for z = 1 : 2
-        [~, bin] = histc(fr(:, i, z), bins);
-        m = accumarray(bin, ve(:, i, z), [numel(bins) - 1, 1], @mean);
+        m = makeBinned(fr(:, i, z), ve(:, i, z), bins, @mean, 'include');
         plot(binsc, m, linestyle{z}, 'color', colors(i, :))
     end
 end
