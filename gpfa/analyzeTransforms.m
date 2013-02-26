@@ -103,11 +103,10 @@ function [ve, fr] = varianceExplained(model, Yr, Yt, test)
     Yt = Yt(:, :, test);
     Yr = Yr(:, :, test);
     model = GPFA(model);
-    X = model.estX(Yt);
     if byTrial
-        ve = var(sum(X, 2)) * model.C .^ 2 ./ var(sum(Yt, 2), [], 3);
+        ve = model.varExplByTrial(Yt);
     else
-        ve = var(X(:)) * model.C .^ 2 ./ var(Yt(1 : end, :), [], 2);
+        ve = model.varExpl(Yt);
     end
     fr = mean(Yr(1 : end, :), 2) / binSize * 1000;
 end
