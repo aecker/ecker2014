@@ -73,7 +73,7 @@ end
 % Summary plot
 %   (a) average R^2 for the different transforms
 %   (b) average R^2 as a function of firing rate as well
-figure(3), clf
+figure(3 + byTrial), clf
 subplot(2, 1, 1), hold all
 colors = colormap(lines);
 for i = 1 : nTrans
@@ -92,7 +92,7 @@ for i = 1 : nTrans
         plot(binsc, m, linestyle{z}, 'color', colors(i, :))
     end
 end
-set(gca, 'xscale', 'log', 'yscale', 'linear', 'box', 'off', 'xlim', [0.5 200])
+set(gca, 'xscale', 'log', 'yscale', 'linear', 'box', 'off', 'xlim', bins([1 end]))
 set(gca, 'xticklabel', get(gca, 'xtick'))
 ylabel('Average R^2')
 xlabel('Average firing rate (spikes/s)')
