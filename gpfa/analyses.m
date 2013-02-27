@@ -65,6 +65,10 @@ verifyResidCov()
 %   * The differences between the transforms aren't too big (< 5%)
 %   * Anscombe transform and log(x + 1) perform best both on a per-bin and
 %       per-trial basis. log(x + 0.1) performs worst.
+%       - Anscombe is statistically significantly better than any other
+%         transform per-bin, when z-scoring (Friedman test).
+%       - Per trial there is no difference between Anscombe and log(x + 1)
+%         but both are better than no transform or log(x + 0.1).
 %   * Z-scoring spike counrs helps only per-trial but not per-bin. I don't
 %       have terribly good intuition why this happens, except that it may
 %       put too much weight on uninformative cells with low rates. If this

@@ -80,3 +80,20 @@ end
 set(gca, 'box', 'off', 'xlim', bins([1 end]), 'xtick', bins, 'xticklabel', 2 .^ bins)
 ylabel('Average R^2')
 xlabel('Average firing rate (spikes/s)')
+
+% Statistics: are the differences between transformation significant?
+tr = 1;
+nModels = count(nc.GpfaParams * nc.GpfaModelSet & key) / nTrans / 2;
+vea = zeros(nModels, 2, nTrans);
+for transform = fetch(nc.DataTransforms)'
+    for z = [0 1]
+        modelKey = dj.struct.join(struct('zscore', z), key);
+        modelKey = dj.struct.join(modelKey, transform);
+        vea(:, z + 1, tr) = fetchn(nc.GpfaParams * nc.GpfaCovExpl & modelKey, 'avg_var_expl_test');
+    end
+    tr = tr + 1;
+end
+
+[p, ~, stats] = friedman(vea(1 : end, :));
+multcompare(stats);
+fprintf('Friedman test: p = %.2g\n\n', p)
