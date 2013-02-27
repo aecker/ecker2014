@@ -59,25 +59,30 @@ verifyResidCov()
 
 %% Compare data transformations
 %
-% Here we compare the different data transformations w.r.t. to R^2 between
-% observed and predicted spike counts for the one-factor GPFA model.
+% Here we compare the different data transformations w.r.t. to percent
+% variance explained on the test set for the one-factor GPFA model.
 %
-%   * The differences between the transforms aren't too big (ca. 6-7%)
-%   * Anscombe transform and log(x + 1) perform best on a per-bin basis.
-%       log(x + 0.1) performs (marginally) best for per-trial spike counts.
-%   * R^2 is larger for higher firing rates. This is particularly strong
-%       for the untransformed data. It seems like the model puts most of
-%       its weight here on explaining the high-firing-rate cells.
-%   * The model does put a bit more weight on the most active cells, which
-%       is evident when looking at z-scored data: R^2 is reduced somewhat
-%       for the most active cells, although not by too much. R^2 remains
-%       larger for the most active cells. Thus, the model isn't _just_
-%       putting large weight on the most active cells.
+%   * The differences between the transforms aren't too big (< 5%)
+%   * Anscombe transform and log(x + 1) perform best both on a per-bin and
+%       per-trial basis. log(x + 0.1) performs worst.
+%   * Z-scoring spike counrs helps only per-trial but not per-bin. I don't
+%       have terribly good intuition why this happens, except that it may
+%       put too much weight on uninformative cells with low rates. If this
+%       were the case, though, I'm not sure why z-scoring would help for
+%       the per-trial data (although it does so only for the untransformed
+%       data).
+%   * Variance explained is larger for higher firing rates but plateaus for
+%       rates > 16 spikes/s. This is likely because for low-firing cells
+%       firing rate variability doesn't account for much of the variance
+%       if spiking is assumed to be Poisson given the rate. One would
+%       expect variance explained to keep increasing with increasing rates
+%       (which seems to be the case for the untransformed, unnormalized
+%       data) but the transformation/normalization counters that.
 %
-% last update: 2013-01-08
+% last update: 2013-02-27
 
-byTrial = 1;
-analyzeTransforms(byTrial)
+analyzeTransforms('by_trial', false)
+analyzeTransforms('by_trial', true)
 
 
 %% Timescale of latent factor (for one-factor GPFA model)
