@@ -1,21 +1,17 @@
 %{
 nc.GpfaCovExpl (computed) # Covariance explained by GPFA model
 
--> nc.GpfaModel
-by_trial            : boolean       # use spike counts for entire trial
+-> nc.GpfaModelSet
+latent_dim           : tinyint unsigned  # number of latent dimensions
+by_trial             : boolean       # use spike counts for entire trial
 ---
-cov_train           : mediumblob    # covariance matrix of training set
-cov_test            : mediumblob    # covariance matrix of test set
-cov_pred            : mediumblob    # predicted covariance matrix
-cov_resid_train     : mediumblob    # residual covariance for training set
-cov_resid_test      : mediumblob    # residual covariance for test set
-norm_train          : double        # norm for training set
-norm_test           : double        # norm for tes set
-norm_pred           : double        # norm for prediction
-norm_diff_train     : double        # difference in norms for training set
-norm_diff_test      : double        # difference in norms for test set
-rel_diff_train      : double        # relative difference for training set
-rel_diff_test       : double        # relative difference for test set
+avg_var_expl_train   : double        # average variance explained on train set
+avg_var_expl_test    : double        # average variance explained on test set
+corr_resid_train     : mediumblob    # residual cov for train set (avg over CV runs)
+corr_resid_test      : mediumblob    # residual cov for test set (avg over CV runs)
+rmsd_corr_pred_train : double        # RMS diff of offdiags for prediction and train set
+rmsd_corr_pred_test  : double        # RMS diff of offdiags for prediction and train set
+rmsd_corr_train_test : double        # RMS diff of offdiags for prediction and train set
 %}
 
 classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
@@ -23,64 +19,87 @@ classdef GpfaCovExpl < dj.Relvar & dj.AutoPopulate
         table = dj.Table('nc.GpfaCovExpl');
         popRel = nc.GpfaParams * nc.GpfaModelSet & 'kfold_cv > 1';
     end
-    
+
     methods 
         function self = GpfaCovExpl(varargin)
             self.restrict(varargin{:})
         end
     end
-    
+
     methods (Access = protected)
         function makeTuples(self, key)
             Yt = fetch1(nc.GpfaModelSet & key, 'transformed_data');
-            for key = fetch(nc.GpfaModel & key)'
-                [train, test, model] = fetch1(nc.GpfaModel & key, 'train_set', 'test_set', 'model');
-                model = GPFA(model);
-                for byTrial = [false true]
-                    Qtrain = cov(Ysub(Yt, train, byTrial));
-                    Qtest = cov(Ysub(Yt, test, byTrial));
-                    if byTrial
-                        Qpred = model.T * model.R;
-                        for i = 1 : model.p
-                            K = toeplitz(model.covFun(0 : model.T - 1, model.gamma(i)));
-                            Qpred = Qpred + (model.C(:, i) * model.C(:, i)') * sum(K(:));
-                        end
-                    else
+            par = fetch(nc.GpfaParams & key, '*');
+            coeff = @(C) C ./ sqrt(diag(C) * diag(C)');
+            for p = 0 : par.max_latent_dim
+                for byTrial = [false, true]
+                    vetrain = 0;
+                    vetest = 0;
+                    Qrtrain = 0;
+                    Qrtest = 0;
+                    rmsPredTrain = 0;
+                    rmsPredTest = 0;
+                    rmsTrainTest = 0;
+                    for k = 1 : par.kfold_cv
+                        modelKey = key;
+                        modelKey.latent_dim = p;
+                        modelKey.cv_run = k;
+                        [train, test, model] = fetch1(nc.GpfaModel & modelKey, 'train_set', 'test_set', 'model');
+                        model = GPFA(model);
+                        Ytrain = Yt(:, :, train);
+                        Ytest = Yt(:, :, test);
+
+                        % variance explained
+                        vetrain = vetrain + model.varExpl(Ytrain, byTrial) / par.kfold_cv;
+                        vetest = vetest + model.varExpl(Ytest, byTrial) / par.kfold_cv;
+
+                        % residual correlations
+                        Qrtrain = Qrtrain + model.residCov(Ytrain, byTrial);
+                        Qrtest = Qrtest + model.residCov(Ytest, byTrial);
                         Qpred = model.C * model.C' + model.R;
+
+                        % RMS difference of predicted and observed correlations
+                        Y0train = model.subtractMean(Ytrain);
+                        Y0test = model.subtractMean(Ytest);
+                        if byTrial
+                            Qtrain = corrcoef(permute(sum(Y0train, 2), [3 1 2]));
+                            Qtest = corrcoef(permute(sum(Y0test, 2), [3 1 2]));
+                        else
+                            Qtrain = corrcoef(Y0train(1 : end, :)');
+                            Qtest = corrcoef(Y0test(1 : end, :)');
+                        end
+                        rmsPredTrain = rmsPredTrain + sqrt(mean(offdiag(Qpred - Qtrain) .^ 2)) / par.kfold_cv;
+                        rmsPredTest = rmsPredTest + sqrt(mean(offdiag(Qpred - Qtest) .^ 2)) / par.kfold_cv;
+                        rmsTrainTest = rmsTrainTest + sqrt(mean(offdiag(Qtrain - Qtest) .^ 2)) / par.kfold_cv;
                     end
+
+                    % insert into database
                     tuple = key;
+                    tuple.latent_dim = p;
                     tuple.by_trial = byTrial;
-                    tuple.cov_train = Qtrain;
-                    tuple.cov_test = Qtest;
-                    tuple.cov_pred = Qpred;
-                    if byTrial
-                        tuple.cov_resid_train = model.residCovByTrial(Yt(:, :, train));
-                        tuple.cov_resid_test = model.residCovByTrial(Yt(:, :, test));
-                    else
-                        tuple.cov_resid_train = model.residCov(Yt(:, :, train));
-                        tuple.cov_resid_test = model.residCov(Yt(:, :, test));
-                    end
-                    tuple.norm_diff_train = norm(Qtrain - Qpred, 'fro');
-                    tuple.norm_diff_test = norm(Qtest - Qpred, 'fro');
-                    tuple.norm_train = norm(Qtrain, 'fro');
-                    tuple.norm_test = norm(Qtest, 'fro');
-                    tuple.norm_pred = norm(Qpred, 'fro');
-                    tuple.rel_diff_train = tuple.norm_diff_train / tuple.norm_train;
-                    tuple.rel_diff_test = tuple.norm_diff_test / tuple.norm_test;
+                    tuple.avg_var_expl_train = mean(vetrain);
+                    tuple.avg_var_expl_test = mean(vetest);
+                    tuple.corr_resid_train = coeff(Qrtrain);
+                    tuple.corr_resid_test = coeff(Qrtest);
+                    tuple.rmsd_corr_pred_train = rmsPredTrain;
+                    tuple.rmsd_corr_pred_test = rmsPredTest;
+                    tuple.rmsd_corr_train_test = rmsTrainTest;
                     self.insert(tuple);
+
+                    % insert variance explained per cell
+                    unitIds = fetchn(nc.GpfaUnits & key, 'unit_id', 'ORDER BY unit_id');
+                    nUnits = numel(unitIds);
+                    for i = 1 : nUnits
+                        tuple = key;
+                        tuple.latent_dim = p;
+                        tuple.by_trial = byTrial;
+                        tuple.unit_id = unitIds(i);
+                        tuple.var_expl_train = vetrain(i);
+                        tuple.var_expl_test = vetest(i);
+                        insert(nc.GpfaVarExpl, tuple);
+                    end
                 end
             end
         end
-    end
-    
-end
-
-
-function Y = Ysub(Y, index, byTrial)
-    Y = Y(:, :, index);
-    if byTrial
-        Y = permute(sum(Y, 2), [3 1 2]);
-    else
-        Y = Y(1 : end, :)';
     end
 end
