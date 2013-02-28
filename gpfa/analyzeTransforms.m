@@ -34,7 +34,7 @@ for transform = fetch(nc.DataTransforms)'
         modelKey = dj.struct.join(struct('zscore', z), key);
         modelKey = dj.struct.join(modelKey, transform);
         rel = nc.GpfaParams * nc.GpfaModelSet * nc.GpfaVarExpl * nc.UnitStatsConditions & modelKey;
-        [ve(:, tr, z + 1), fr(:, tr, z + 1)] = fetchn(rel, 'var_expl_test', 'mean_rate_cond');
+        [ve(:, tr, z + 1), fr(:, tr, z + 1)] = fetchn(rel, '1 - var_unexpl_test -> v', 'mean_rate_cond');
     end
     tr = tr + 1;
 end
@@ -89,7 +89,7 @@ for transform = fetch(nc.DataTransforms)'
     for z = [0 1]
         modelKey = dj.struct.join(struct('zscore', z), key);
         modelKey = dj.struct.join(modelKey, transform);
-        vea(:, z + 1, tr) = fetchn(nc.GpfaParams * nc.GpfaCovExpl & modelKey, 'avg_var_expl_test');
+        vea(:, z + 1, tr) = fetchn(nc.GpfaParams * nc.GpfaCovExpl & modelKey, '1 - avg_var_unexpl_train -> v');
     end
     tr = tr + 1;
 end
