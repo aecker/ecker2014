@@ -4,6 +4,34 @@ run ~/lab/projects/acq/alex_setPath.m
 run ~/lab/projects/anesthesia/code/setPath.m
 
 
+%% Compare data transformations
+%
+% Here we compare the different data transformations w.r.t. to percent
+% variance explained on the test set for the one-factor GPFA model.
+%
+%   * The differences between the transforms aren't too big (5% bin-based,
+%       10% trial-based)
+%   * Normalization by z-score doesn't change anything significantly. If
+%       anything it's slightly worse, probably because too much weight is
+%       put on the cells with low rates where not much can be explained
+%       (see rate dependence below).
+%   * Bin-based Anscombe, sqrt, and log(x + 1) perform significantly better
+%       than the other two.
+%   * Trial-based all except untransformed perform equally well.
+%   * Variance explained is larger for higher firing rates but plateaus for
+%       rates > 16 spikes/s. This is likely because for low-firing cells
+%       firing rate variability doesn't account for much of the variance
+%       if spiking is assumed to be Poisson given the rate. One would
+%       expect variance explained to keep increasing with increasing rates
+%       (which seems to be the case for the untransformed, unnormalized
+%       data) but the transformation/normalization counters that.
+%
+% last update: 2013-03-04
+
+analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', false)
+analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', true)
+
+
 %% Covariance explained (matrix norm)
 %
 % This analysis looks at the norm of the difference between observed
@@ -55,38 +83,6 @@ covExplPairwise(transformNum, zscore, 1, coeff)
 % last update: 2013-01-15
 
 verifyResidCov()
-
-
-%% Compare data transformations
-%
-% Here we compare the different data transformations w.r.t. to percent
-% variance explained on the test set for the one-factor GPFA model.
-%
-%   * The differences between the transforms aren't too big (< 5%)
-%   * Anscombe transform and log(x + 1) perform best both on a per-bin and
-%       per-trial basis. log(x + 0.1) performs worst.
-%       - Anscombe is statistically significantly better than any other
-%         transform per-bin, when z-scoring (Friedman test).
-%       - Per trial there is no difference between Anscombe and log(x + 1)
-%         but both are better than no transform or log(x + 0.1).
-%   * Z-scoring spike counrs helps only per-trial but not per-bin. I don't
-%       have terribly good intuition why this happens, except that it may
-%       put too much weight on uninformative cells with low rates. If this
-%       were the case, though, I'm not sure why z-scoring would help for
-%       the per-trial data (although it does so only for the untransformed
-%       data).
-%   * Variance explained is larger for higher firing rates but plateaus for
-%       rates > 16 spikes/s. This is likely because for low-firing cells
-%       firing rate variability doesn't account for much of the variance
-%       if spiking is assumed to be Poisson given the rate. One would
-%       expect variance explained to keep increasing with increasing rates
-%       (which seems to be the case for the untransformed, unnormalized
-%       data) but the transformation/normalization counters that.
-%
-% last update: 2013-02-27
-
-analyzeTransforms('by_trial', false)
-analyzeTransforms('by_trial', true)
 
 
 %% Timescale of latent factor (for one-factor GPFA model)
