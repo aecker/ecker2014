@@ -137,7 +137,7 @@ else
     Y0 = Y0(1 : end, :)';
     Y0p = Y0p(1 : end, :)';
 end
-Q = cov(Y0, 1);
+Q = Y0' * Y0 / size(Y0, 1);
 end
 
 
