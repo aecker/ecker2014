@@ -86,12 +86,16 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 nBins = fix(stimTimeLimit / par.bin_size);
                 bins = offset + (0 : nBins) * par.bin_size;
 
+                % determine minimum number of trials across conditions
+                nTrials = min(fetchn(nc.GratingConditions, ...
+                    nc.GratingTrials * stimulation.StimTrials('valid_trial = true') ...
+                    & rmfield(key, 'condition_num'), 'count(1) -> n_trials'));
+
                 % get spikes
-                validTrials = (stimulation.StimTrials(key) * nc.GratingTrials(key)) & 'valid_trial = true';
-                data = fetch(ae.SpikesByTrial(key) * validTrials, 'spikes_by_trial');
-                data = dj.struct.sort(data, {'trial_num', 'unit_id'});
-                nUnits = max([data.unit_id]);
-                nTrials = numel(data) / nUnits;
+                nUnits = count(ephys.Spikes & key);
+                rel = ae.SpikesByTrial * stimulation.StimTrials * nc.GratingTrials;
+                data = fetch(rel & key & 'valid_trial = true', 'spikes_by_trial', ...
+                    sprintf('ORDER BY trial_num, unit_id LIMIT %d', nTrials * nUnits));
                 data = reshape(data, nUnits, nTrials);
                 Y = zeros(nUnits, nBins, nTrials);
                 for iTrial = 1 : nTrials
@@ -115,7 +119,6 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 unitIds = unitIds(m > minRate);
 
                 % partition data for cross-validation
-                nTrials = size(Y, 3);
                 part = round(linspace(0, nTrials, par.kfold_cv + 1));
 
                 % remove cells with zero variance in at least one set
