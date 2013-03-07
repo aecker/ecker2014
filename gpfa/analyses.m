@@ -32,6 +32,40 @@ analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', false)
 analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', true)
 
 
+%% Variance explained
+%
+% Here we analyze the variance explained (VE) by the model in more detail:
+% how does it depend on firing rates and brain state (awake vs.
+% anesthetized)?
+%
+% The measure of VE I use is 1 - variance unexplained, where the latter is
+% computed as the residual variance on a separate test set (to avoid
+% overfitting and report honest results). This measure can become negative
+% if the model doesn't explain any of the variance. In this case the
+% residual variance will be larger than the actual variance in the data. In
+% some sense this is an advantage over traditional measures of variance
+% explained, which are typically always positive even if the model is not
+% appropriate.
+%
+% I decided against using C*C' as a measure of VE, since it is bound to
+% overestimate the fraction of variance explained due to overfitting to the
+% training set.
+%
+%   * The model clearly explaines substantially more variance in
+%       anesthetized recordings compared with awake recordings.
+%   * VE increases with cells' firing rates both for awake and anesthetized
+%       data. It seems to plateau for rates > 16 spikes/s.
+%   * Using larger counting windows increases VE substantially for
+%       anesthesia but not for awake data. This indicates that the latent
+%       process has a faster timescale in awake recordings. We should see
+%       this in the analysis of the timescale below.
+%
+% last update: 2013-03-07
+
+varExpl('by_trial', false)
+varExpl('by_trial', true)
+
+
 %% Covariance explained (matrix norm)
 %
 % This analysis looks at the norm of the difference between observed
