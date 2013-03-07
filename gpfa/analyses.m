@@ -91,27 +91,6 @@ varExpl('by_trial', true)
 timescales()
 
 
-%% Covariance explained (matrix norm)
-%
-% This analysis looks at the norm of the difference between observed
-% covariance matrix and that predicted by the GPFA model.
-%
-% I'm not sure if this analysis is ideal for a number of reasons. Here
-% are some thoughts on it.
-%
-%   * The values are related to the residual variance of the covariances
-%   * We're normalizing by the norm of the observed covariance matrix,
-%       which is dominated by the diagonal terms.
-%   * How much the diagonal terms account for the overall norm will likely
-%       depend on the number of cells since their number is linear in the
-%       number of cells while the number of off-diagonals scales with the
-%       square.
-%
-% last update: 2012-12-11
-
-covExpl('subject_id IN (9, 11)', 'sort_method_num = 5', 'kfold_cv = 2', 'transform_num = 2')
-
-
 %% covariance explained (off-diagonals only)
 %
 % For this analysis we look at the off-diagonals of the difference between
