@@ -56,14 +56,39 @@ analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', true)
 %   * VE increases with cells' firing rates both for awake and anesthetized
 %       data. It seems to plateau for rates > 16 spikes/s.
 %   * Using larger counting windows increases VE substantially for
-%       anesthesia but not for awake data. This indicates that the latent
-%       process has a faster timescale in awake recordings. We should see
-%       this in the analysis of the timescale below.
+%       anesthesia but not for awake data. I don't have a terribly good
+%       explanation for this at the moment. I first thought it was because
+%       the latent process has a faster timescale in awake recordings, but
+%       that's not the case as the analysis of the timescale below shows.
 %
 % last update: 2013-03-07
 
 varExpl('by_trial', false)
 varExpl('by_trial', true)
+
+
+%% Timescale of latent factor (for one-factor GPFA model)
+%
+% Here we look at the timescale of the latent factors. It's modeled as a
+% Gaussian process with Gaussian time kernel, so a typical temporal "bump"
+% will last for ca. 2x the timescale value.
+%
+%   * The timescale of the latent process for anesthesia is ca. 250 ms,
+%       which corresponds well to that of typical up and down states (also
+%       evident in the raster plots in the illustration figure).
+%   * Timescale for awake recordings is substantially slower (ca. 700 ms).
+%       This corresponds essentially to entire trials since trials are only
+%       500 ms long. It shows that in awake recordings there are no common
+%       fluctuations present at the 250 ms timescale we see during
+%       anesthesia. Correlations probably arise either on a faster
+%       timescale (but then aren't common to all cells and can't be
+%       explained by this model) or on much slower timescales (such as
+%       electrode drift or fatigue etc.), which can't be completely ruled
+%       out in any experiment.
+%
+% last update: 2013-03-07
+
+timescales()
 
 
 %% Covariance explained (matrix norm)
@@ -117,21 +142,6 @@ covExplPairwise(transformNum, zscore, 1, coeff)
 % last update: 2013-01-15
 
 verifyResidCov()
-
-
-%% Timescale of latent factor (for one-factor GPFA model)
-%
-% Here we look at the timescale of the latent factors. It's modeled as a
-% Gaussian process with Gaussian time kernel, so a typical temporal "bump"
-% will last for ca. 2x the timescale value.
-%
-% last update: 2013-01-28
-
-transformNum = 2;
-zscore = 1;
-timescales(transformNum, zscore, 1)
-timescales(transformNum, zscore, 2)
-timescales(transformNum, zscore, 3)
 
 
 %% Distribution of factor loadings for first factor
