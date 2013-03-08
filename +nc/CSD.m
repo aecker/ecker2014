@@ -2,6 +2,7 @@
 nc.CSD (computed) # Current source density of LFP
 
 -> nc.TetrodeDepthAdjustSet
+-> nc.CSDParams
 ---
 csd_complete    : mediumblob    # CSD of entire trial
 csd_complete_t  : mediumblob    # times for CSD
@@ -18,7 +19,7 @@ csd_sink_t      : double        # time of csd sink
 classdef CSD < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.CSD');
-        popRel = nc.TetrodeDepthAdjustSet;
+        popRel = nc.TetrodeDepthAdjustSet * nc.CSDParams;
     end
     
     methods 
@@ -31,7 +32,7 @@ classdef CSD < dj.Relvar & dj.AutoPopulate
         function makeTuples(self, key)
             
             % some parameters
-            restr = 'confidence > 0.5';
+            restr = sprintf('confidence > %.15f', key.min_confidence);
             n = 100;
             sd = 150;
             on = [0 300];
