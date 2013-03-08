@@ -10,6 +10,7 @@ classdef Figure < handle
         fontSizeScreen = 12
         fontSizePrint = 7;
         tickLength = 3; % pt
+        fileName = '';
     end
     
     properties (Dependent)
@@ -97,6 +98,11 @@ classdef Figure < handle
             %   fig.save(filename) saves the figure using the given file
             %   name.
             
+            if nargin < 2
+                file = self.fileName;
+            else
+                self.fileName = file;
+            end
             [~, ~, ext] = fileparts(file);
             if isempty(ext)
                 ext = 'eps';
