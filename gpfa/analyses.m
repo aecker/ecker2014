@@ -91,6 +91,27 @@ varExpl('by_trial', true)
 timescales()
 
 
+%% Residual correlations
+%
+% Here we look at the level of residual correlations after accounting for a
+% varying number of latent factors, both during wakefulness and anesthesia.
+%
+%   * The first factor reduces the average level of correlations under
+%       anesthesia substantially, bringing it close to the level of awake
+%       recordings.
+%   * Subsequent factors during anesthesia, as well as all factors during
+%       wakefulness don't decrease the mean too much further.
+%   * The standard deviation of the correlations, however, is reduced
+%       further by subsequent factors, although under anesthesia it starts
+%       to increase after the fourth factor or so, probably due to
+%       overfitting.
+%
+% last update: AE 2013-03-08
+
+residCorr('by_trial', false)
+residCorr('by_trial', true)
+
+
 %% covariance explained (off-diagonals only)
 %
 % For this analysis we look at the off-diagonals of the difference between
