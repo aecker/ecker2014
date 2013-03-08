@@ -105,11 +105,8 @@ timescales()
 %
 % last update: 2013-01-18
 
-transformNum = 2;
-zscore = 1;
-coeff = 1;
-covExplPairwise(transformNum, zscore, 0, coeff)
-covExplPairwise(transformNum, zscore, 1, coeff)
+covExplPairwise('by_trial', false)
+covExplPairwise('by_trial', true)
 
 
 %% Sanity check for residual variance calculation

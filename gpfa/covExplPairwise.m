@@ -1,96 +1,72 @@
-function covExplPairwise(transformNum, zscore, byTrial, coeff)
+function covExplPairwise(varargin)
 % Analyze how well the GPFA model approximates the covariance matrix.
-%   covExplPairwise(transformNum, zscore, byTrial, coeff) where
-%   transformNum, zscore, and byTrial define which model should be used and
-%   coeff indicates whether or not the differences are taken on the
-%   covariances or correlation coefficients.
-%
 %   For this analysis we look at the off-diagonals of the difference
 %   between observed and predicted (by GPFA) covariance matrix.
 %
 % AE 2013-01-09
 
-restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
-                 struct('transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
+% key for analysis parameters/subjects etc.
+key.transform_num = 5;
+key.zscore = false;
+key.by_trial = false;
+key.sort_method_num = 5;
+key.bin_size = 100;
+key.max_latent_dim = 10;
+key.min_stability = 0.1;
+key.kfold_cv = 2;
+key = genKey(key, varargin{:});
+assert(isscalar(key) && ~any(cellfun(@isempty, varargin(2 : 2 : end))), 'Parameters not unique!')
 
-rel = nc.GpfaParams * nc.GpfaCovExpl & restrictions;
+% Compute variance explained
+stateKeys = struct('state', {'awake', 'anesthetized', 'anesthetized'}, ...
+                   'spike_count_end', {530 2030 530});
+N = numel(stateKeys);
+
+rel = nc.Anesthesia * nc.GpfaParams * nc.GpfaModelSet * nc.GpfaCovExpl & key & stateKeys(2);
 n = count(rel & 'latent_dim = 0');
 pmax = count(rel) / n - 1;
-data = fetch(rel, '*');
-kfold = data(1).kfold_cv;
-
-% some sanity checks
-assert(numel(unique([data.sort_method_num])) == 1, 'sort_method_num must be specified!')
-assert(numel(unique([data.bin_size])) == 1, 'bin_size must be specified!')
-assert(numel(unique([data.kfold_cv])) == 1, 'kfold_cv must be specified!')
-assert(numel(unique([data.transform_num])) == 1, 'transform_num must be specified!')
-
-data = dj.struct.sort(data, {'cv_run', 'latent_dim', 'stim_start_time'});
-data = reshape(data, [n / kfold, pmax + 1, kfold]);
-
-% convert to correlation coefficients?
-if coeff
-    convert = @(C) C ./ sqrt(diag(C) * diag(C)');
-else
-    convert = @(C) C;
-end
+data = fetch(rel, 'corr_resid_train', 'corr_resid_test', ...
+    'rmsd_corr_pred_train', 'rmsd_corr_pred_test', 'rmsd_corr_train_test', ...
+    'ORDER BY latent_dim, stim_start_time');
+data = reshape(data, [n, pmax + 1]);
 
 % residual cov/corr
-restrain = collect(data, @(data) convert(data.cov_resid_train));
-restest = collect(data, @(data) convert(data.cov_resid_test));
-
-% differences between predicted and observed
-fun = @(data, a, b) convert(data.(a)) - convert(data.(b));
-dpredtrain = collect(data, @(data) fun(data, 'cov_train', 'cov_pred'));
-dpredtest = collect(data, @(data) fun(data, 'cov_test', 'cov_pred'));
-dtraintest = collect(data, @(data) fun(data, 'cov_train', 'cov_test'));
+restrain = collect(data, 'corr_resid_train');
+restest = collect(data, 'corr_resid_test');
 
 % plot data
-fig = sum([transformNum zscore byTrial coeff] .* 10 .^ (3 : -1 : 0));
-figure(fig), clf
-ttext = {'covariance', 'corrcoef'};
+fig = Figure(1 + key.by_trial + 10 * key.zscore, 'size', [90 50]);
 
-subplot(1, 3, 1)
-plot(0 : pmax, mean(mean(restrain, 3), 1), '.-k', ...
-     0 : pmax, mean(mean(restest, 3), 1), '.-r')
+subplot(1, 2, 1)
+plot(0 : pmax, mean(restrain), '.-k', 0 : pmax, mean(restest), '.-r')
 xlim([-1 pmax + 1])
 xlabel('# latent factors')
-ylabel(['Mean residual ' ttext{coeff + 1}])
-set(legend({'Training data', 'Test data'}), 'box', 'off')
-box off
+ylabel('Mean residual correlation')
+legend({'Training data', 'Test data'})
+axis square
 
-subplot(1, 3, 2)
-plot(0 : pmax, std(mean(restrain, 3), [], 1), '.-k', ...
-     0 : pmax, std(mean(restest, 3), [], 1), '.-r')
+subplot(1, 2, 2)
+plot(0 : pmax, std(restrain), '.-k', 0 : pmax, std(restest), '.-r')
+hold on
+plot(0 : pmax, median(abs(bsxfun(@minus, restrain, median(restrain)))), '.--k', ...
+     0 : pmax, median(abs(bsxfun(@minus, restest, median(restest)))), '.--r')
 xlim([-1 pmax + 1])
 xlabel('# latent factors')
-ylabel(['SD of residual ' ttext{coeff + 1}])
-box off
+ylabel('SD of residual corr')
+axis square
 
-subplot(1, 3, 3)
-plot(0 : pmax, sqrt(mean(mean(dpredtrain .^ 2, 3), 1)), '.-k', ...
-     0 : pmax, sqrt(mean(mean(dpredtest .^ 2, 3), 1)), '.-r', ...
-     0 : pmax, sqrt(mean(mean(dtraintest .^ 2, 3), 1)), '--k')
-xlim([-1 pmax + 1])
-xlabel('# latent factors')
-ylabel(['RMS diff of ' ttext{coeff + 1} 's'])
-legend({'pred - train', 'pred - test', 'train - test'})
-box off
+fig.cleanup()
 
 
+function d = collect(data, field)
 
-function d = collect(data, fun)
-
-offdiag = @(x) x(~tril(ones(size(x))));
-[n, pmax, kfold] = size(data);
+[n, pmax] = size(data);
 d = zeros(0, pmax);
 for p = 1 : pmax
-    for k = 1 : kfold
-        dpk = cell(1, n);
-        for i = 1 : n
-            dpk{i} = offdiag(fun(data(i, p, k)));
-        end
-        dpk = cat(1, dpk{:});
-        d(1 : numel(dpk), p, k) = dpk;
+    dp = cell(1, n);
+    for i = 1 : n
+        dp{i} = offdiag(data(i, p).(field));
     end
+    dp = cat(1, dp{:});
+    d(1 : numel(dp), p) = dp;
 end
