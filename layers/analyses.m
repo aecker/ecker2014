@@ -22,15 +22,18 @@ run ~/lab/projects/anesthesia/code/setPath.m
 % far each tetrode was adjusted after each recording this should give me a
 % fairly reliable estimate of the depths.
 %
-%   * At least in one monkey we seem to get a decent source/sink pattern
-%     where we expect layer 4.
-%   * As an interesting aside, the off response seems to be pretty strong
-%     in the superficial layers. It's also visible in layer 4, roughly at
-%     the same magnitude as the on response.
+%   * In two of the three monkeys we seem to get a decent source/sink
+%     pattern where we expect layer 4.
 %
-% last update: 2013-02-13
+%   * The off responses aren't quite as consistent between the two monkeys.
+%     However, since I used features from the off responses to align the
+%     tetrodes and get decent and consistent CSD profiles for the on
+%     responses makes me pretty optimistic about these results.
+%
+% last update: 2013-03-27
 
-plotCSD
+plotCSD(11)
+plotCSD(28)
 
 
 %% CSD debugging in first monkey

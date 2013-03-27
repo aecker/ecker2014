@@ -1,10 +1,12 @@
-function plotCSD(subjectId)
+function plotCSD(subjectId, varargin)
 % Plot current source density profiles
 % AE 2013-02-13
 
 if ~nargin, subjectId = 11; end
 key.subject_id = subjectId;
-key.min_freq = -1;
+key.min_freq = 2;
+key.min_confidence = 0.5;
+key = genKey(key, varargin{:});
 data = fetch(nc.CSD & key, '*');
 
 figure(1), clf
