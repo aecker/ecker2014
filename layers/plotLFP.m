@@ -1,9 +1,14 @@
-function plotLFP(subjectId)
+function plotLFP(subjectId, varargin)
 
 if ~nargin, subjectId = 11; end
 key.subject_id = subjectId;
-key.min_freq = -1;
+key.min_freq = 2;
 key.max_freq = 40;
+key.low_min = 1;
+key.low_max = 5;
+key.high_min = 20;
+key.high_max = 100;
+key = genKey(key, varargin{:});
 
 tet = fetchn(nc.EvokedLfpElectrodes & key, 'electrode_num');
 nTet = numel(tet);
@@ -26,7 +31,7 @@ M = 3; N = 1; K = 1;
 subplot(M, N, K); K = K + 1;
 x = mean(lfp, 3);
 t = start + (0 : size(x, 1) - 1) * 1000 / Fs;
-plot(t, bsxfun(@plus, -(0 : 8) * 5e-5, x), 'k')
+plot(t, bsxfun(@plus, -(0 : size(x, 2) - 1) * 5e-5, x), 'k')
 hold on
 axis tight
 plot([0 0], ylim, '-', 2000 * [1 1], ylim, '-', 'color', 0.5 * ones(1, 3))
@@ -44,7 +49,7 @@ title('SVD components')
 
 % plot correlation of SVD components with depth of anesthesia
 rat = fetchn(acq.Ephys, nc.LfpPowerRatio & key, 'avg(power_ratio) -> r');
-ndx = 2 : 4;
+ndx = 1 : 4;
 b = regress(rat, [V(:, ndx) ones(nStim, 1)]);
 subplot(M, 2, 5);
 plot(rat, V(:, ndx) * b(1 : numel(ndx)), '.k')
