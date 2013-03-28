@@ -12,7 +12,7 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.NoiseCorrelationSet');
         popRel = (nc.UnitPairSet * ae.SpikeCountSet * nc.OriTuningSet * nc.Gratings) ...
-            & 'stimulus_time >= spike_count_end';
+            & 'stimulus_time + 30 >= spike_count_end';
     end
     
     methods 
