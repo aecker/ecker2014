@@ -59,4 +59,3 @@ plotLFP(9)
 plotLFP(11)
 plotLFP(28)
 
-
