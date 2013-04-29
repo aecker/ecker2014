@@ -77,7 +77,7 @@ classdef OriTuning < dj.Relvar
             % test for visual responsiveness (adjust for multiple comp).
             p = zeros(nDir, 1);
             for i = 1:nDir
-                p(i) = ttest2(fixation, rate(:, i));
+                [~, p(i)] = ttest2(fixation, rate(:, i));
             end
             tuple = key;
             tuple.vis_resp_p = min(1, min(p) * nDir);
