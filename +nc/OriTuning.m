@@ -104,7 +104,7 @@ classdef OriTuning < dj.Relvar
             % the statistical significance of its magnitude by randomly
             % permuting the trial labels.
             v = exp(2i * directions)';
-            n = 2000;
+            n = 10000;
             nv = zeros(n, 1);
             for i = 1:n
                 nv(i) = abs(rate(randperm(numel(directions))) * v);
