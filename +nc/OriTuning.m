@@ -20,6 +20,7 @@ dir_baseline = NULL     : float     # baseline offset of orientation tuning curv
 dir_kappa = NULL        : float     # direction tuning width (kappa)
 dir_ampl_pref = NULL    : float     # amplitude preferred direction (a)
 dir_ampl_null = NULL    : float     # amplitude opposite direction (b)
+dir_fit_rsq = NULL      : float     # R^2 of direction tuning curve fit
 dir_mean_rate = NULL    : blob      # raw mean firing rates for all directions
 dir_sel_ind = NULL      : float     # direction selectivity index
 
@@ -92,14 +93,14 @@ classdef OriTuning < dj.Relvar
             kmax = log(1/2) / (cos(wmin) - 1);
             opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
             a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(4)], opt);
-            f = nc.OriTuning.oriTunFun(a, uDir);
-            f2 = nc.OriTuning.oriTunFun(a, linspace(0, 2 * pi, 1000));
             tuple.ori_baseline = a(1);
             tuple.ori_kappa = a(2);
             tuple.pref_ori = mod(a(3), pi);
             tuple.ori_ampl = exp(a(4));
+            f = nc.OriTuning.oriTunFun(a, uDir);
             tuple.ori_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
-            tuple.ori_sel_ind = 1 - min(f2) / max(f2);
+            f = nc.OriTuning.oriTunFun(a, a(3) + [0 pi/2]);
+            tuple.ori_sel_ind = 1 - f(2) / f(1);
             if max(uDir) > pi
                 tuple.ori_mean_rate = mean(reshape(meanRate, [], 2), 2)';
             else
@@ -133,13 +134,15 @@ classdef OriTuning < dj.Relvar
                 end
                 tuple.dir_ampl_pref = exp(a(4));
                 tuple.dir_ampl_null = exp(a(5));
-                tuple.dir_sel_ind = 1 - exp(a(5)) / exp(a(4));
+                f = nc.OriTuning.oriTunFun(a, tuple.pref_dir + [0 pi]);
+                tuple.dir_sel_ind = 1 - f(2) / f(1);
                 
                 % significance of direction selectivity (U test)
                 f = nc.OriTuning.dirTunFun(a, uDir);
                 ndx = find(abs(angle(exp(1i * (uDir - a(3))))) < pi / 2 & f > (exp(a(4)) + a(1)) / 2);
                 pref = rate(:, ndx);
                 null = rate(:, mod(ndx + nDir / 2 - 1, nDir) + 1);
+                tuple.dir_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
                 tuple.dir_sel_p = ranksum(pref(:), null(:));
                 tuple.dir_mean_rate = meanRate;
             end
