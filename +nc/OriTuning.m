@@ -11,7 +11,9 @@ pref_ori                : float     # preferred orientation (phi)
 ori_baseline            : float     # baseline offset of orientation tuning curve (f_base)
 ori_kappa               : float     # orientation tuning width (kappa)
 ori_ampl                : float     # orientation tuning curve amplitude (a)
+ori_fit_rsq             : float     # R^2 of tuning curve fit
 ori_mean_rate           : blob      # raw mean firing rates for all orientations
+ori_sel_ind             : float     # orientation selectivity index
 dir_sel_p = NULL        : float     # p value for direction selectivity (a != b)
 pref_dir = NULL         : float     # preferred direction (if applicable)
 dir_baseline = NULL     : float     # baseline offset of orientation tuning curve (f_base)
@@ -19,6 +21,7 @@ dir_kappa = NULL        : float     # direction tuning width (kappa)
 dir_ampl_pref = NULL    : float     # amplitude preferred direction (a)
 dir_ampl_null = NULL    : float     # amplitude opposite direction (b)
 dir_mean_rate = NULL    : blob      # raw mean firing rates for all directions
+dir_sel_ind = NULL      : float     # direction selectivity index
 
 %}
 
@@ -89,10 +92,14 @@ classdef OriTuning < dj.Relvar
             kmax = log(1/2) / (cos(wmin) - 1);
             opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
             a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(4)], opt);
+            f = nc.OriTuning.oriTunFun(a, uDir);
+            f2 = nc.OriTuning.oriTunFun(a, linspace(0, 2 * pi, 1000));
             tuple.ori_baseline = a(1);
             tuple.ori_kappa = a(2);
             tuple.pref_ori = mod(a(3), pi);
             tuple.ori_ampl = exp(a(4));
+            tuple.ori_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
+            tuple.ori_sel_ind = 1 - min(f2) / max(f2);
             if max(uDir) > pi
                 tuple.ori_mean_rate = mean(reshape(meanRate, [], 2), 2)';
             else
@@ -126,6 +133,7 @@ classdef OriTuning < dj.Relvar
                 end
                 tuple.dir_ampl_pref = exp(a(4));
                 tuple.dir_ampl_null = exp(a(5));
+                tuple.dir_sel_ind = 1 - exp(a(5)) / exp(a(4));
                 
                 % significance of direction selectivity (U test)
                 f = nc.OriTuning.dirTunFun(a, uDir);
