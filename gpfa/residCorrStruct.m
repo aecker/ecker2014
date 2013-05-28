@@ -1,81 +1,92 @@
-function residCorrStruct(pmax, transformNum, zscore, byTrial, coeff)
+function residCorrStruct(varargin)
 % Structure of residual correlations.
-%   residCorrStruct(pmax, transformNum, zscore, byTrial, coeff)
+%   residCorrStruct()
 %
 %   Plot correlation structure for residual correlations: dependence on
 %   firing rates, signal correlations, difference in preferred
 %   orientations, and distance.
 %
-% AE 2013-01-22
+% AE 2013-05-21
 
-figure(1000 * transformNum + 100 * zscore + 10 * byTrial + coeff), clf
+% key for analysis parameters/subjects etc.
+key.transform_num = 5;
+key.zscore = false;
+key.by_trial = false;
+key.sort_method_num = 5;
+key.bin_size = 100;
+key.max_latent_dim = 1;
+key.min_stability = 0.1;
+key.kfold_cv = 2;
+key.control = 0;
+key = genKey(key, varargin{:});
+assert(isscalar(key), 'Key must be unique!')
+
+states = {'awake', 'anesthetized'};
+
+fig = Figure(1 + key.by_trial, 'size', [90 120]); clf
 M = 3;
 N = 2;
-covText = {'covariance', 'correlation'};
-colors = lines(pmax + 1);
-hdl1 = zeros(pmax + 1, 2);
-hdl2 = hdl1;
-for p = 0 : pmax
-
-    restrictions = {'subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2', ...
-        struct('latent_dim', p, 'transform_num', transformNum, 'zscore', zscore, 'by_trial', byTrial)};
-    
-    offdiag = @(C) C(~tril(ones(size(C))));
-    corr = @(C) C ./ sqrt(diag(C) * diag(C)');
-    
-    keys = fetch(nc.GpfaParams * nc.GpfaCovExpl & restrictions & 'cv_run = 1')';
-    props = cell(numel(keys), 5);
-    resid = cell(numel(keys), 2);
-    for iKey = 1 : numel(keys);
-        key = keys(iKey);
+hdl1 = zeros(2);
+hdl2 = zeros(2);
+linestyles = {'-', '--'};
+for iState = 1 : numel(states)
+    for p = 0 : 1
         
-        % fetch properties of pairs
-        [props{iKey, :}] = fetchOffdiag(nc.GpfaModelSet & key, nc.NoiseCorrelations * nc.NoiseCorrelationConditions, ...
-            'geom_mean_rate_cond', 'min_rate_cond', 'r_signal', 'diff_pref_ori', 'distance');
+        curKey = key;
+        curKey.state = states{iState};
+        curKey.latent_dim = p;
+%         if iState == 1
+%             curKey.subject_id = 8;
+%         end
         
-        % get residual correlations
-        [resid{iKey, :}] = fetch1(nc.GpfaCovExpl & key, 'cov_resid_train', 'cov_resid_test');
+        rel = nc.Anesthesia * nc.GpfaPairs * nc.GpfaParams * nc.GpfaModelSet ...
+            * nc.GpfaCovExpl * nc.NoiseCorrelations * nc.NoiseCorrelationConditions;
+        
+        [gmr, mr, rs, dp, d, st] = fetchn(rel & curKey, ...
+            'geom_mean_rate_cond', 'min_rate_cond', 'r_signal', 'diff_pref_ori', 'distance', 'stim_start_time', ...
+            'ORDER BY stim_start_time, condition_num, index_j, index_i');
+        
+        resid = fetchn(nc.Anesthesia * nc.GpfaParams * nc.GpfaCovExpl & curKey, ...
+            'corr_resid_test', 'ORDER BY stim_start_time, condition_num');
+        
+        % extract off-diagonals (and normalize)
+        offdiag = @(C) C(~tril(ones(size(C))));
+        resid = cellfun(offdiag, resid, 'uni', false);
+        resid = cat(1, resid{:});
+        
+        % plots
+        K = 1;
+        color = colors(states{iState});
+        linestyle = linestyles{p + 1};
+        
+        bins = -1 : 6;
+        doPlots(log2(gmr), -1 : 6, 'Geometric mean firing rate');
+        set(gca, 'xtick', bins(2 : end - 1), 'xticklabel', 2 .^ bins(2 : end - 1))
+        
+        doPlots(log2(mr), bins, 'Minimum firing rate');
+        set(gca, 'xtick', bins(2 : end - 1), 'xticklabel', 2 .^ bins(2 : end - 1))
+        
+        doPlots(rs, -1 : 0.2 : 1, 'Signal correlation');
+        hdl1(p + 1, iState) = doPlots(dp, linspace(0, pi / 2, 10), 'Difference in pref ori');
+        hdl2(p + 1, iState) = doPlots(d, 0 : 0.5 : 4, 'Distance');
     end
-    
-    % extract off-diagonals (and normalize)
-    if coeff
-        fun = @(C) offdiag(corr(C));
-    else
-        fun = offdiag;
-    end
-    resid = cellfun(fun, resid, 'uni', false);
-    
-    % plots
-    K = 1;
-    color = colors(p + 1, :);
-    
-    bins = [-1 : 6, 8];
-    gmr = cellfun(@log2, props(:, 1), 'uni', false);
-    doPlots(gmr, bins, 'Geometric mean firing rate');
-    set(gca, 'xlim', bins([1 end]), 'xtick', bins, 'xticklabel', 2 .^ bins)
-    
-    mr = cellfun(@log2, props(:, 2), 'uni', false);
-    doPlots(mr, -2 : 7, 'Minimum firing rate');
-    set(gca, 'xtick', -1 : 6, 'xticklabel', 2 .^ (-1 : 6))
-    
-    doPlots(props(:, 3), -1 : 0.2 : 1, 'Signal correlation');
-    hdl1(p + 1, :) = doPlots(props(:, 4), linspace(0, pi / 2, 10), 'Difference in pref ori');
-    hdl2(p + 1, :) = doPlots(props(:, 5), 0 : 0.5 : 4, 'Distance');
 end
 
-legend(hdl1(:, 2), arrayfun(@(x) sprintf('p = %d', x), 0 : pmax, 'uni', false))
-legend(hdl2(1, :), {'Test set', 'Training set'})
+legend(hdl1(1, :), states)
+legend(hdl2(:, 1), {'p = 0', 'p = 1'})
+
+byTrial = {'_bins', '_trials'};
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save([file byTrial{key.by_trial + 1}])
 
     function hdl = doPlots(x, bins, xlbl)
         subplot(M, N, K); K = K + 1;
         hold on
-        [mTrain, seTrain] = binnedMeanAndErrorbars(x, resid(:, 1), bins);
-        [mTest, seTest] = binnedMeanAndErrorbars(x, resid(:, 2), bins);
+        [m, se] = binnedMeanAndErrorbars(x, resid, st, bins);
         binc = makeBinned([], [], bins);
-        hdl = [errorbar(binc, mTrain, seTrain, '--', 'color', color), ...
-               errorbar(binc, mTest, seTest, '-', 'color', color)];
+        hdl = errorbar(binc, m, se, linestyle, 'color', color);
         xlabel(xlbl)
-        ylabel(['Average residual ' covText{coeff + 1}])
+        ylabel('Average residual correlation')
         set(gca, 'box', 'off')
         axisTight
     end
@@ -83,7 +94,7 @@ legend(hdl2(1, :), {'Test set', 'Training set'})
 end
 
 
-function [m, se] = binnedMeanAndErrorbars(x, y, bins)
+function [m, se] = binnedMeanAndErrorbars(x, y, st, bins)
 % Compute binned means and error bars.
 %   Since the simultaneously recorded pairs aren't independent we can't
 %   just use SEM = SD / sqrt(n), since this would underestimate the true
@@ -97,10 +108,16 @@ function [m, se] = binnedMeanAndErrorbars(x, y, bins)
 
 % compute overall binned means (it's the more reliable estimate than first
 % averaging sites)
-m = makeBinned(cat(1, x{:}), cat(1, y{:}), bins, @mean);
+m = makeBinned(x, y, bins, @mean, 'include');
 
 % compute binned means for each site used for error bars
-ym = cellfun(@(x, y) makeBinned(x, y, bins, @mean), x, y, 'uni', false);
+ust = unique(st);
+n = numel(ust);
+ym = cell(1, n);
+for i = 1 : n
+    ndx = st == ust(i);
+    ym{i} = makeBinned(x(ndx), y(ndx), bins, @mean, 'include');
+end
 ym = [ym{:}];
 se = nanstd(ym) ./ sqrt(sum(~isnan(ym), 2));
 end
