@@ -54,3 +54,10 @@ for iCol = 1 : cols
     end
     axis ij
 end
+fig.cleanup()
+
+append = {'', '_gpfa'};
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save([file append{gpfa + 1}])
+pause(1)
+fig.save([file append{gpfa + 1} '.png'])

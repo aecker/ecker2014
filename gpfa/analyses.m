@@ -203,9 +203,10 @@ factorLoadingTuningProps(transformNum, zscore, p)
 %
 % last update: 2013-01-09
 
-load ~/lab/projects/anesthesia/figures/viskey.mat
-visualize(key, trials)
-visualize(key, trials2)
+load /Volumes/aecker/lab/projects/anesthesia/figures/viskey.mat
+rastersByTrial(key, reshape(31 : 50, 10, 2), false)
+rastersByTrial(key, (31 : 40)', true)
+
 
 
 %% Structure of residual correlations
