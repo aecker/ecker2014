@@ -39,7 +39,7 @@ switch logical(key(1).by_trial)
         vebinsc = vebins(1 : end - 1) + d / 2;
         frbins = -1 : 7;
         scax = [-1 8 -0.5 1];
-        bax = [frbins([1 end]) 0 0.4];
+        bax = [frbins([1 end]) 0 0.5];
         hax = [vebins([1 end]) 0 0.3];
     case false
         d = 0.05;
@@ -52,13 +52,12 @@ switch logical(key(1).by_trial)
 end
 
 fig = Figure(1 + key(1).by_trial, 'size', [95 105]);
-colors = {[0 0.4 1], 'r', 'r'};
 lines = {'.-', '.-', '.:'};
 for i = 1 : 2
 
     % scatter plots: variance explained vs. firing rate
     subplot(2, 2, i)
-    plot(log2(fr{i}), ve{i}, '.', 'color', colors{i}, 'markersize', 1)
+    plot(log2(fr{i}), ve{i}, '.', 'color', colors(stateKeys(i).state), 'markersize', 1)
     axis square
     axis(scax)
     set(gca, 'xticklabel', 2 .^ get(gca, 'xtick'))
@@ -71,13 +70,13 @@ for i = 1 : 2
     subplot(2, 2, 3)
     hold on
     [m, frbinsc] = makeBinned(log2(fr{i}), ve{i}, frbins, @mean, 'include');
-    plot(frbinsc, m, lines{i}, 'color', colors{i})
+    plot(frbinsc, m, lines{i}, 'color', colors(stateKeys(i).state))
     
     % histogram of variance explained for rate > 8 spikes/s
     subplot(4, 2, 4 + 2 * i)
     h = histc(ve{i}(fr{i} > 8), vebins);
     h = h(1 : end - 1) / sum(h);
-    bar(vebinsc, h, 1, 'FaceColor', colors{i}, 'LineStyle', 'none');
+    bar(vebinsc, h, 1, 'FaceColor', colors(stateKeys(i).state), 'LineStyle', 'none');
     axis(hax)
     xlim(vebins([1 end]))
     if i == 2
@@ -89,7 +88,7 @@ end
 % control: anesthetized data with first 500 ms only
 subplot(2, 2, 3)
 [m, frbinsc] = makeBinned(log2(fr{3}), ve{3}, frbins, @mean, 'include');
-plot(frbinsc, m, lines{3}, 'color', colors{i})
+plot(frbinsc, m, lines{3}, 'color', colors(stateKeys(3).state))
 axis square
 axis(bax)
 set(gca, 'xticklabel', 2 .^ get(gca, 'xtick'))
