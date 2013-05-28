@@ -2,9 +2,9 @@ function varargout = corrStructPlots(varargin)
 % Dependence of noise correlations on firing rates
 % AE 2012-08-06
 
-args.subjectIds = {23 8 9 11};
+args.subjectIds = {23 8 9 11 28};
 args.sortMethodNum = 5;
-args.spikeCountEnd = 500;
+args.spikeCountEnd = 530;
 args.contam = 0.1;
 args.stability = 0.1;
 args.rateDepType = 'lin';  % lin/sqrt/log
@@ -45,50 +45,40 @@ for subjectId = args.subjectIds(:)'
     if nargout
         varargout{1}(k, :) = par;
     end
-    binc = @(b) b(2 : end) - diff(b(end - 1 : end)) / 2;
     
     % firing rate dependence
     switch args.rateDepType
         case 'lin'
-            frbins = 0 : 10 : 70;
-            [count, frbin] = histc(fr, frbins);
+            frbins = 0 : 5 : 40;
             lbl = '%s';
             xl = [0 40];
         case 'sqrt'
             frbins = 0 : 0.5 : 8;
-            [count, frbin] = histc(sqrt(fr), frbins);
+            fr = sqrt(fr);
             lbl = 'sqrt(%s)';
             xl = [0 6];
         case 'log'
             frbins = [-Inf, -1 : 0.25 : 2];
-            [count, frbin] = histc(log10(fr), frbins);
+            fr = log10(fr);
             lbl = 'log10(%s)';
             xl = [-1.25 2];
     end
-    sz = [numel(frbins) - 1, 1];
-    m = accumarray(frbin, r, sz, @mean);
-    m(count(1 : end - 1) < 3) = NaN;
-    se = accumarray(frbin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    [m, se, binc] = makeBinned(fr, r, frbins, @mean, @(x) std(x) / sqrt(numel(x)), 'include');
     
     subplot(2, 2, 1), hold all
-    hdl = errorbar(binc(frbins), m, se, '.');
-    plot(binc(frbins), evalReg(frbins, binc(frbins), par, fr, rs, d, 'fr', args.adjustPred), 'color', get(hdl, 'color'))
+    hdl = errorbar(binc, m, se, '.');
+    plot(binc, evalReg(frbins, binc, par, fr, rs, d, 'fr', args.adjustPred), 'color', get(hdl, 'color'))
     set(gca, 'box', 'off', 'xlim', xl)
     xlabel(sprintf(lbl, 'Geometric mean firing rate [spikes/sec]'))
     ylabel('Spike count correlation')
     
     % signal correlation dependence
     rsbins = -1 : 0.5 : 1;
-    rsbins(end) = 1.00001;
-    [count, rsbin] = histc(rs, rsbins);
-    sz = [numel(rsbins) - 1, 1];
-    m = accumarray(rsbin, r, sz, @mean);
-    m(count(1 : end - 1) < 5) = NaN;
-    se = accumarray(rsbin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    [m, se, binc] = makeBinned(rs, r, rsbins, @mean, @(x) std(x) / sqrt(numel(x)), 'include');
     
     subplot(2, 2, 2), hold all
-    hdl = errorbar(binc(rsbins), m, se, '.');
-    plot(binc(rsbins), evalReg(rsbins, binc(rsbins), par, fr, rs, d, 'rs', args.adjustPred), 'color', get(hdl, 'color'))
+    hdl = errorbar(binc, m, se, '.');
+    plot(binc, evalReg(rsbins, binc, par, fr, rs, d, 'rs', args.adjustPred), 'color', get(hdl, 'color'))
     set(gca, 'box', 'off', 'xlim', rsbins([1 end]))
     xlabel('Signal correlation')
     ylabel('Spike count correlation')
@@ -99,15 +89,11 @@ for subjectId = args.subjectIds(:)'
     else
         dbins = 0 : 0.5 : 4;
     end
-    [count, dbin] = histc(d, dbins);
-    sz = [numel(dbins) - 1, 1];
-    m = accumarray(dbin, r, sz, @mean);
-    m(count(1 : end - 1) < 5) = NaN;
-    se = accumarray(dbin, r, sz, @(x) std(x) / sqrt(numel(x)));
+    [m, se, binc] = makeBinned(d, r, dbins, @mean, @(x) std(x) / sqrt(numel(x)), 'include');
     
     subplot(2, 2, 3), hold all
-    hdl = errorbar(binc(dbins), m, se, '.');
-    hhdl(k) = plot(binc(dbins), evalReg(dbins, binc(dbins), par, fr, rs, d, 'd', args.adjustPred), 'color', get(hdl, 'color'));
+    hdl = errorbar(binc, m, se, '.');
+    hhdl(k) = plot(binc, evalReg(dbins, binc, par, fr, rs, d, 'd', args.adjustPred), 'color', get(hdl, 'color'));
     set(gca, 'box', 'off', 'xlim', dbins([1 end]))
     xlabel('Distamce between tetrodes (mu)')
     ylabel('Spike count correlation')
