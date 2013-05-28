@@ -10,7 +10,6 @@ keys = struct('sort_method_num', 5, ...
               'state', {'awake', 'anesthetized'});
 
 fig = Figure(1, 'size', [100, 50]); clf
-colors = {[0 0.4 1], [1 0 0]};
 
 % Fano factors
 subplot(1, 2, 1)
@@ -25,7 +24,7 @@ for iKey = 1 : numel(keys)
     h = h / sum(h);
     sgn = -sign(iKey - 1.5);
     hdl = bar(bins, sgn * h, 1);
-    set(hdl, 'FaceColor', colors{iKey}, 'LineStyle', 'none')
+    set(hdl, 'FaceColor', colors(key.state), 'LineStyle', 'none')
     plot(nanmean(F), 0.1 * sgn, '.k')
 end
 axisTight()
@@ -46,7 +45,7 @@ for iKey = 1 : numel(keys)
     h = h / sum(h);
     sgn = -sign(iKey - 1.5);
     hdl = bar(bins, sgn * h, 1);
-    set(hdl, 'FaceColor', colors{iKey}, 'LineStyle', 'none')
+    set(hdl, 'FaceColor', colors(key.state), 'LineStyle', 'none')
     plot(nanmean(r), 0.1 * sgn, '.k')
 end
 axisTight()
