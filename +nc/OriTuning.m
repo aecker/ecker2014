@@ -87,66 +87,89 @@ classdef OriTuning < dj.Relvar
             tuple.vis_resp_p = min(1, min(p) * nDir);
             
             % orientation tuning curve
-            [~, maxOri] = max(meanRate);
-            a0 = [min(meanRate), 2, uDir(maxOri), log(max(meanRate) - min(meanRate) + 0.01)];
-            wmin = 0.8 * min(diff(uDir));
-            kmax = log(1/2) / (cos(wmin) - 1);
-            opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
-            a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(4)], opt);
-            tuple.ori_baseline = a(1);
-            tuple.ori_kappa = a(2);
-            tuple.pref_ori = mod(a(3), pi);
-            tuple.ori_ampl = exp(a(4));
-            f = nc.OriTuning.oriTunFun(a, uDir);
-            tuple.ori_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
-            f = nc.OriTuning.oriTunFun(a, a(3) + [0 pi/2]);
-            tuple.ori_sel_ind = 1 - f(2) / f(1);
+            if any(meanRate > 0)
+                [~, maxOri] = max(meanRate);
+                a0 = [min(meanRate), 2, uDir(maxOri), log(max(meanRate) - min(meanRate) + 0.01)];
+                wmin = 0.8 * min(diff(uDir));
+                kmax = log(1/2) / (cos(wmin) - 1);
+                opt = optimset('MaxFunEvals', 1e4, 'MaxIter', 1e3, 'Display', 'off');
+                a = lsqcurvefit(@nc.OriTuning.oriTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf], [Inf kmax Inf a0(4)], opt);
+                tuple.ori_baseline = a(1);
+                tuple.ori_kappa = a(2);
+                tuple.pref_ori = mod(a(3), pi);
+                tuple.ori_ampl = exp(a(4));
+                f = nc.OriTuning.oriTunFun(a, uDir);
+                tuple.ori_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
+                f = nc.OriTuning.oriTunFun(a, a(3) + [0 pi/2]);
+                tuple.ori_sel_ind = 1 - f(2) / f(1);
+                
+                % Test for significance of orientation tuning
+                % we project on a complex exponential with one cycle and asses
+                % the statistical significance of its magnitude by randomly
+                % permuting the trial labels.
+                v = exp(2i * directions)';
+                n = 10000;
+                nv = zeros(n, 1);
+                for i = 1:n
+                    nv(i) = abs(rate(randperm(numel(directions))) * v);
+                end
+                tuple.ori_sel_p = sum(nv > abs(rate(:)' * v)) / n;
+            else
+                tuple.ori_baseline = 0;
+                tuple.ori_kappa = 0;
+                tuple.pref_ori = 0;
+                tuple.ori_ampl = 0;
+                tuple.ori_fit_rsq = 1;
+                tuple.ori_sel_ind = 0;
+                tuple.ori_sel_p = 1;
+            end
             if max(uDir) > pi
                 tuple.ori_mean_rate = mean(reshape(meanRate, [], 2), 2)';
             else
                 tuple.ori_mean_rate = meanRate;
             end
             
-            % Test for significance of orientation tuning 
-            % we project on a complex exponential with one cycle and asses
-            % the statistical significance of its magnitude by randomly
-            % permuting the trial labels.
-            v = exp(2i * directions)';
-            n = 1000;
-            nv = zeros(n, 1);
-            for i = 1:n
-                nv(i) = abs(rate(randperm(numel(directions))) * v);
-            end
-            tuple.ori_sel_p = sum(nv > abs(rate(:)' * v)) / n;
-
             % direction tuning curve (if applicable)
-            if max(uDir) > pi
-                a0(5) = log(meanRate(mod(maxOri - 1 + ceil(nDir/2), nDir) + 1) - a0(1));
-                kmax = log(1/2) / (cos(wmin / 2) - 1);
-                a = lsqcurvefit(@nc.OriTuning.dirTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf -Inf], [Inf kmax Inf a0(4) a0(4)], opt);
-                tuple.dir_baseline = a(1);
-                tuple.dir_kappa = a(2);
-                if a(4) > a(5)
-                    tuple.pref_dir = mod(a(3), 2 * pi);
+            if any(meanRate > 0)
+                if max(uDir) > pi
+                    a0(5) = log(meanRate(mod(maxOri - 1 + ceil(nDir/2), nDir) + 1) - a0(1));
+                    kmax = log(1/2) / (cos(wmin / 2) - 1);
+                    a = lsqcurvefit(@nc.OriTuning.dirTunFun, a0, directions(:), rate(:), [0 0 -Inf -Inf -Inf], [Inf kmax Inf a0(4) a0(4)], opt);
+                    tuple.dir_baseline = a(1);
+                    tuple.dir_kappa = a(2);
+                    if a(4) > a(5)
+                        tuple.pref_dir = mod(a(3), 2 * pi);
+                    else
+                        a(4:5) = a([5 4]);
+                        tuple.pref_dir = mod(a(3) + pi, 2 * pi);
+                    end
+                    tuple.dir_ampl_pref = exp(a(4));
+                    tuple.dir_ampl_null = exp(a(5));
+                    f = nc.OriTuning.oriTunFun(a, tuple.pref_dir + [0 pi]);
+                    tuple.dir_sel_ind = 1 - f(2) / f(1);
+                    
+                    % significance of direction selectivity (U test)
+                    f = nc.OriTuning.dirTunFun(a, uDir);
+                    ndx = find(abs(angle(exp(1i * (uDir - a(3))))) < pi / 2 & f > (exp(a(4)) + a(1)) / 2);
+                    pref = rate(:, ndx);
+                    null = rate(:, mod(ndx + nDir / 2 - 1, nDir) + 1);
+                    tuple.dir_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
+                    tuple.dir_sel_p = ranksum(pref(:), null(:));
                 else
-                    a(4:5) = a([5 4]);
-                    tuple.pref_dir = mod(a(3) + pi, 2 * pi);
+                    tuple.dir_baseline = 0;
+                    tuple.dir_kappa = 0;
+                    tuple.pref_dir = 0;
+                    tuple.dir_ampl_pref = 0;
+                    tuple.dir_ampl_null = 0;
+                    tuple.dir_fit_rsq = 1;
+                    tuple.dir_sel_ind = 0;
+                    tuple.dir_sel_p = 1;
                 end
-                tuple.dir_ampl_pref = exp(a(4));
-                tuple.dir_ampl_null = exp(a(5));
-                f = nc.OriTuning.oriTunFun(a, tuple.pref_dir + [0 pi]);
-                tuple.dir_sel_ind = 1 - f(2) / f(1);
-                
-                % significance of direction selectivity (U test)
-                f = nc.OriTuning.dirTunFun(a, uDir);
-                ndx = find(abs(angle(exp(1i * (uDir - a(3))))) < pi / 2 & f > (exp(a(4)) + a(1)) / 2);
-                pref = rate(:, ndx);
-                null = rate(:, mod(ndx + nDir / 2 - 1, nDir) + 1);
-                tuple.dir_fit_rsq = mean(f .^ 2) / mean(meanRate .^ 2);
-                tuple.dir_sel_p = ranksum(pref(:), null(:));
                 tuple.dir_mean_rate = meanRate;
             end
-			insert(self, tuple)
+			insert(self, tuple);
+        end
+    end
         end
     end
     
