@@ -3,6 +3,7 @@ nc.GpfaModelSet (computed) # Gaussian process factor analysis model
 
 -> nc.GratingConditions
 -> ae.SpikesByTrialSet
+-> nc.UnitPairSet
 -> nc.GpfaParams
 -> nc.DataTransforms
 control             : boolean           # control model (first 500 ms only)
