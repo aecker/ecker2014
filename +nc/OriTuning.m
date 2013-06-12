@@ -170,6 +170,39 @@ classdef OriTuning < dj.Relvar
 			insert(self, tuple);
         end
     end
+    
+    methods
+        function varargout = plot(self, varargin)
+            args.hdl = gca;
+            args = parseVarArgs(args, varargin{:});
+            axes(args.hdl);
+            data = fetch(self, '*');
+            if isnan(data.dir_sel_p)   % orientation
+                n = length(data.ori_mean_rate);
+                orid = (0 : n) / n * 180;
+                oric = linspace(0, 180, 200);
+                par = [data.ori_baseline data.ori_kappa data.pref_ori log(data.ori_ampl)];
+                f = nc.OriTuning.oriTunFun(par, oric / 180 * pi);
+                mr = data.ori_mean_rate;
+                mr = [mr mr(1)];
+                plot(orid, mr, '.k', oric, f, 'k')
+                yl = max(max(mr), max(f)) * 1.1;
+                set(gca, 'xlim', [0 180], 'xtick', 0 : 90 : 180, 'ylim', [0 yl])
+            else   % direction of motion
+                n = length(data.dir_mean_rate);
+                dird = (0 : n) / n * 360;
+                dirc = linspace(0, 360, 200);
+                par = [data.dir_baseline data.dir_kappa data.pref_dir log(data.dir_ampl_pref) log(data.dir_ampl_null)];
+                f = nc.OriTuning.dirTunFun(par, dirc / 180 * pi);
+                mr = data.dir_mean_rate;
+                mr = [mr mr(1)];
+                plot(dird, mr, '.k', dirc, f, 'k')
+                yl = max(max(mr), max(f)) * 1.1;
+                set(gca, 'xlim', [0 360], 'xtick', 0 : 180 : 360, 'ylim', [0 yl])
+            end
+            if nargout
+                varargout{1} = agrs.hdl;
+            end
         end
     end
     
