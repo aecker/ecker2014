@@ -207,6 +207,9 @@ load /Volumes/aecker/lab/projects/anesthesia/figures/viskey.mat
 rastersByTrial(key, reshape(31 : 50, 10, 2), false)
 rastersByTrial(key, (31 : 40)', true)
 
+% select some active neurons
+units = [4 15 3 6 8 12 9 13 11 14 24 18 29 30 33];
+rastersByNeuron(key, 1 : 100, reshape(units, 15, 1))
 
 
 %% Structure of residual correlations

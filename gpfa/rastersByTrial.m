@@ -1,4 +1,4 @@
-function visualize(key, trials, gpfa)
+function rastersByTrial(key, trials, gpfa)
 % Visualize GPFA model.
 % AE 2013-01-09
 
@@ -56,8 +56,8 @@ for iCol = 1 : cols
 end
 fig.cleanup()
 
-append = {'', '_gpfa'};
-file = strrep(mfilename('fullpath'), 'code', 'figures');
-fig.save([file append{gpfa + 1}])
-pause(1)
-fig.save([file append{gpfa + 1} '.png'])
+% append = {'', '_gpfa'};
+% file = strrep(mfilename('fullpath'), 'code', 'figures');
+% fig.save([file append{gpfa + 1}])
+% pause(1)
+% fig.save([file append{gpfa + 1} '.png'])
