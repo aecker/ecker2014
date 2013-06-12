@@ -20,10 +20,10 @@ nUnits = numel(units);
 % determine density of ticks according to firing rate
 N = arrayfun(@(x) numel(x.spikes_by_trial), spikes);
 N = mean(N, 3);
-density = min(2, 2 ./ N);
+density = min(2, 40 ./ N);
 
 % Plot
-fig = Figure(2, 'size', [50 * cols, 10 * rows]);
+fig = Figure(2, 'size', [50 * cols, 6 * rows]);
 clf
 for iCol = 1 : cols
     subplot(1, cols, iCol)
@@ -31,21 +31,30 @@ for iCol = 1 : cols
     for iRow = 1 : min(rows, nUnits - (iCol - 1) * rows)
         for iTrial = 1 : nTrials
             y = (iCol - 1) * rows + (iRow - 1) + (iTrial - 1) / nTrials;
-            t = spikes(iRow, iCol, trials(iTrial)).spikes_by_trial';
+            t = spikes(iRow, iCol, iTrial).spikes_by_trial';
             t = t(t > window(1) & t < window(2));
             if ~isempty(t)
                 t = repmat(t, 2, 1);
-                plot(t, y + [0; density(iRow, iCol) / nTrials], 'k')
+                plot(t, y + [0; density(iRow, iCol) / nTrials], 'k', 'linewidth', 0.15)
             end
         end
     end
-    plot(window, (iCol - 1) * rows + repmat(1 : rows - 1, 2, 1), 'k')
-    set(gca, 'xlim', window, 'ylim', (iCol - 1) * rows + [0 rows], 'ytick', 0 : rows, 'Box', 'on')
+    if rows > 1
+        plot(window, (iCol - 1) * rows + repmat(1 : rows - 1, 2, 1), 'k')
+    end
+    set(gca, 'xlim', window, 'ylim', (iCol - 1) * rows + [0 rows], ...
+        'ytick', 0 : rows, 'xtick', -500 : 500 : 3000, ...
+        'xticklabel', {'' 0 '' 1000 '' 2000 '' 3000})
     xlabel('Time [ms]')
     axis ij
     if iCol == 1
         ylabel('Unit')
     end
 end
+xl = xlim;
+yl = ylim;
+plot(xl(2) * [1 1], yl, 'k', xl, yl(2) * [1 1], 'k')
 fig.cleanup();
-set(get(fig, 'children'), 'box', 'on')
+
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save(file)
