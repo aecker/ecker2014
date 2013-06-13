@@ -6,12 +6,24 @@ if nargin < 3
     gpfa = true;
 end
 
-window = 30 + [0 2000];  % 30 ms offset hard-coded in nc.GpfaModelSet
+if gpfa
+    f = 0.2;
+else
+    f = 0;
+end
 
+s = fetch1(nc.Gratings & key, 'stimulus_time');
+b = fetch1(nc.GpfaParams & key, 'bin_size');
+gpfaBins = 30 + (b / 2 : b : s);
+
+window = [-300, s + 400];
+state = fetch1(nc.Anesthesia & key, 'state');
+
+key.valid_trial = true;
 nUnits = count(nc.GpfaUnits & key);
-nTrials = count(nc.GratingTrials & key);
+nTrials = count(nc.GratingTrials * stimulation.StimTrials & key);
 
-spikes = (nc.GpfaUnits * ae.SpikesByTrial * nc.GratingConditions * nc.GratingTrials) & key;
+spikes = (nc.GpfaUnits * ae.SpikesByTrial * nc.GratingConditions * nc.GratingTrials * stimulation.StimTrials) & key;
 spikes = fetch(spikes, 'spikes_by_trial');
 spikes = dj.struct.sort(spikes, {'trial_num', 'unit_id'});
 spikes = reshape(spikes, nUnits, nTrials);
@@ -21,33 +33,45 @@ model.C = model.C * sign(mean(model.C));
 model = GPFA(model);
 X = model.estX(Y(:, :, trials(:)));
 X = reshape(X, [1, size(X, 2), size(trials)]);
-binSize = fetch1(nc.GpfaParams & key, 'bin_size');
-tbins = window(1) + binSize / 2 : binSize : window(2);
-[~, order] = sort(model.C, 'descend');
+[~, order] = sort(mean(Y(:, :), 2), 'descend');
 
 % Plot
 [rows, cols] = size(trials);
-fig = Figure(trials(1), 'size', [40 * cols, 80]);
+switch state
+    case 'awake'
+        sz = 25;
+        xt = [0 500];
+    case 'anesthetized'
+        sz = 40;
+        xt = [0 1000 2000];
+end
+
+ts = linspace(0, s, 100);
+xa = 0.15;
+xs = 0.7 * xa * sin(ts / 1000 * fetch1(nc.Gratings & key, 'speed') * 2 * pi) + xa;
+
+fig = Figure(double(state(2)) + gpfa, 'size', [sz * cols, 80]);
 clf
 for iCol = 1 : cols
     subplot(1, cols, iCol)
     hold on
     for iRow = 1 : rows
         for iUnit = 1 : nUnits
-            y = (iCol - 1) * rows + (iRow - 1) + (iUnit - 1) / nUnits;
+            y = (iCol - 1) * rows + (iRow - 1) + (1 - f) * (iUnit - 1) / nUnits;
             t = spikes(order(iUnit), trials(iRow, iCol)).spikes_by_trial';
             t = t(t > window(1) & t < window(2));
             if ~isempty(t)
                 t = repmat(t, 2, 1);
-                plot(t, y + [0; 1 / nUnits / 2], 'k')
+                plot(t, y + [0; (1 - f) / nUnits / 2], 'k')
             end
         end
         if gpfa
-            plot(tbins, (iCol - 1) * rows + 0.2 * -X(:, :, iRow, iCol) + iRow - 0.4, '-r')
+            plot(gpfaBins, (iCol - 1) * rows + f * 0.5 * -X(:, :, iRow, iCol) + iRow - f, 'color', colors(state))
         end
     end
-    plot(window, (iCol - 1) * rows + repmat(1 : rows - 1, 2, 1), 'k')
-    set(gca, 'xlim', [0 2000], 'ylim', (iCol - 1) * rows + [0 rows], 'Box', 'on')
+    plot(window, (iCol - 1) * rows + repmat(0 : rows - 1, 2, 1), 'k')
+    plot(ts, (iCol - 1) * rows - xs, 'k')
+    set(gca, 'xlim', window, 'ylim', (iCol - 1) * rows + [-2 * xa, rows], 'Box', 'on', 'xtick', xt)
     xlabel('Time [ms]')
     if iCol == 1
         ylabel('Trial')
@@ -56,8 +80,8 @@ for iCol = 1 : cols
 end
 fig.cleanup()
 
-% append = {'', '_gpfa'};
-% file = strrep(mfilename('fullpath'), 'code', 'figures');
-% fig.save([file append{gpfa + 1}])
+append = {'', '_gpfa'};
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save([file append{gpfa + 1} '_' state])
 % pause(1)
-% fig.save([file append{gpfa + 1} '.png'])
+% fig.save([file append{gpfa + 1} '_' state '.png'])

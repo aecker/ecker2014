@@ -203,13 +203,15 @@ factorLoadingTuningProps(transformNum, zscore, p)
 %
 % last update: 2013-01-09
 
-load /Volumes/aecker/lab/projects/anesthesia/figures/viskey.mat
-rastersByTrial(key, reshape(31 : 50, 10, 2), false)
-rastersByTrial(key, (31 : 40)', true)
+load ~/lab/projects/anesthesia/figures/viskeys.mat
 
-% select some active neurons
+% grouped by neurons
 units = [4 15 3 6 8 12 9 13 11 14 24 18 29 30 33];
-rastersByNeuron(key, 1 : 100, reshape(units, 15, 1))
+rastersByNeuron(anKey, 1 : 2 : 100, reshape(units, 15, 1))
+
+% grouped by trials
+rastersByTrial(anKey, reshape(2:21, 10, 2), true);
+rastersByTrial(awKey, reshape(1:20, 10, 2), true);
 
 
 %% Structure of residual correlations
