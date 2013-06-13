@@ -2,15 +2,29 @@
 % AE 2013-06-12
 
 
-%% Tuning curves
 load ~/lab/projects/anesthesia/figures/viskey.mat
-fig = Figure(1, 'size', [250 70]);
+%% Tuning curves -- anesthetized
+fig = Figure(1, 'size', [180 100]);
 i = 1;
-for k = fetch(nc.OriTuning & key)'
+for k = fetch(nc.OriTuning & anKey)'
     rel = nc.OriTuning & k;
-    subplot(4, 11, i)
-    plot(rel);
+    subplot(6, 8, i)
+    plot(rel, 'color', colors('anesthetized'));
     i = i + 1;
 end
 fig.cleanup()
-fig.save('~/lab/projects/anesthesia/figures/data/tuning')
+fig.save('~/lab/projects/anesthesia/figures/data/tuning_anesthetized')
+
+
+%% tuning curves -- awake
+fig = Figure(2, 'size', [180 65]);
+i = 1;
+for k = fetch(nc.OriTuning & awKey)'
+    rel = nc.OriTuning & k;
+    subplot(4, 8, i)
+    plot(rel, 'color', colors('awake'));
+    i = i + 1;
+end
+fig.cleanup()
+fig.save('~/lab/projects/anesthesia/figures/data/tuning_awake')
+
