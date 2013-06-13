@@ -174,6 +174,7 @@ classdef OriTuning < dj.Relvar
     methods
         function varargout = plot(self, varargin)
             args.hdl = gca;
+            args.color = 'k';
             args = parseVarArgs(args, varargin{:});
             axes(args.hdl);
             data = fetch(self, '*');
@@ -185,7 +186,9 @@ classdef OriTuning < dj.Relvar
                 f = nc.OriTuning.oriTunFun(par, oric / 180 * pi);
                 mr = data.ori_mean_rate;
                 mr = [mr mr(1)];
-                plot(orid, mr, '.k', oric, f, 'k')
+                plot(orid, mr, '.k')
+                hold on
+                plot(oric, f, 'color', args.color)
                 yl = max(max(mr), max(f)) * 1.1;
                 set(gca, 'xlim', [0 180], 'xtick', 0 : 90 : 180, 'ylim', [0 yl])
             else   % direction of motion
@@ -196,7 +199,9 @@ classdef OriTuning < dj.Relvar
                 f = nc.OriTuning.dirTunFun(par, dirc / 180 * pi);
                 mr = data.dir_mean_rate;
                 mr = [mr mr(1)];
-                plot(dird, mr, '.k', dirc, f, 'k')
+                plot(dird, mr, '.k')
+                hold on
+                plot(dirc, f, 'color', args.color)
                 yl = max(max(mr), max(f)) * 1.1;
                 set(gca, 'xlim', [0 360], 'xtick', 0 : 180 : 360, 'ylim', [0 yl])
             end
