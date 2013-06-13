@@ -205,10 +205,6 @@ factorLoadingTuningProps(transformNum, zscore, p)
 
 load ~/lab/projects/anesthesia/figures/viskeys.mat
 
-% grouped by neurons
-units = [4 15 3 6 8 12 9 13 11 14 24 18 29 30 33];
-rastersByNeuron(anKey, 1 : 2 : 100, reshape(units, 15, 1))
-
 % grouped by trials
 rastersByTrial(anKey, reshape(2:21, 10, 2), true);
 rastersByTrial(awKey, reshape(1:20, 10, 2), true);

@@ -1,8 +1,21 @@
 % Plots showing data and tuning curves
 % AE 2013-06-12
 
+load ~/lab/projects/anesthesia/figures/viskeys.mat
 
-load ~/lab/projects/anesthesia/figures/viskey.mat
+
+%% Rasters grouped by neurons -- anesthetized
+trials = 1 : 2 : 90;
+units = [3 4 6 8 9 11 12 13 14 15 18 24 29 30 33];
+rastersByNeuron(anKey, trials, units)
+
+
+%% Rasters grouped by neurons -- anesthetized
+trials = 1 : 45;
+units = [3 8 10 11 15 17 18 24 25 27 29];
+rastersByNeuron(awKey, trials, units)
+
+
 %% Tuning curves -- anesthetized
 fig = Figure(1, 'size', [180 100]);
 i = 1;
