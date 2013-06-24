@@ -13,7 +13,7 @@ timestamp=CURRENT_TIMESTAMP : timestamp                         # automatic time
 
 classdef Jobs < dj.Relvar
     properties(Constant)
-        table = dj.Table('nc.Jobs')
+        table = dj.Table('ae.Jobs')
     end
     methods
         function self = Jobs(varargin)
