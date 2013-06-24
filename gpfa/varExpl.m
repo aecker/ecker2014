@@ -47,7 +47,7 @@ switch logical(key(1).by_trial)
         vebinsc = vebins(1 : end - 1) + d / 2;
         frbins = -1 : 7;
         scax = [-1 8 -0.3 1];
-        bax = [frbins([1 end]) 0 0.2];
+        bax = [frbins([1 end]) 0 0.3];
         hax = [vebins([1 end]) 0 0.5];
 end
 
@@ -73,13 +73,13 @@ for i = 1 : 2
     plot(frbinsc, m, lines{i}, 'color', colors(stateKeys(i).state))
     
     % histogram of variance explained for rate > 8 spikes/s
-    subplot(4, 2, 4 + 2 * i)
+    subplot(4, 2, 10 - 2 * i)
     h = histc(ve{i}(fr{i} > 8), vebins);
     h = h(1 : end - 1) / sum(h);
     bar(vebinsc, h, 1, 'FaceColor', colors(stateKeys(i).state), 'LineStyle', 'none');
     axis(hax)
     xlim(vebins([1 end]))
-    if i == 2
+    if i == 1
         xlabel('Variance explained')
     end
     ylabel('Fraction')
