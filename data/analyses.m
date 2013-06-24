@@ -10,7 +10,7 @@ units = [3 4 6 8 9 11 12 13 14 15 18 24 29 30 33];
 rastersByNeuron(anKey, trials, units)
 
 
-%% Rasters grouped by neurons -- anesthetized
+%% Rasters grouped by neurons -- awake
 trials = 1 : 45;
 units = [3 8 10 11 15 17 18 24 25 27 29];
 rastersByNeuron(awKey, trials, units)

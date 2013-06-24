@@ -238,6 +238,6 @@ pmax = 3;
 transformNum = 2;
 zscore = 1;
 coeff = 1;
-residCorrStruct(pmax, transformNum, zscore, 0, coeff) % bin-based
-residCorrStruct(pmax, transformNum, zscore, 1, coeff) % trial-based
+residCorrStruct('by_trial', false)
+residCorrStruct('by_trial', true)
 
