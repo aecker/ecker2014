@@ -44,7 +44,7 @@ for iUnit = 1 : nUnits
         t = t(t > window(1) & t < window(2));
         if ~isempty(t)
             t = repmat(t, 2, 1);
-            plot(t, y + [0; 1 / nTrials], 'k', 'linewidth', 0.15)
+            plot(t, y + [0; 1 / nTrials], 'k')
         end
     end
 end
