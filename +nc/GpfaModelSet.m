@@ -88,9 +88,9 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 bins = offset + (0 : nBins) * par.bin_size;
 
                 % determine minimum number of trials across conditions
-                nTrials = min(fetchn(nc.GratingConditions, ...
+                nTrials = double(min(fetchn(nc.GratingConditions, ...
                     nc.GratingTrials * stimulation.StimTrials('valid_trial = true') ...
-                    & rmfield(key, 'condition_num'), 'count(1) -> n_trials'));
+                    & rmfield(key, 'condition_num'), 'count(1) -> n_trials')));
 
                 % get spikes
                 nUnits = count(ephys.Spikes & key);
