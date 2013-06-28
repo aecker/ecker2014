@@ -5,7 +5,6 @@ nc.EvokedLfp (computed) # stimulus-evoked LFP
 -> acq.EphysStimulationLink
 electrode_num       : tinyint unsigned  # electode number
 ---
-evoked_lfp          : longblob          # stimulus-evoked lfps
 avg_evoked_lfp      : mediumblob        # trial-average of evoked lfps
 %}
 
@@ -44,17 +43,16 @@ classdef EvokedLfp < dj.Relvar
             ndx = bsxfun(@plus, getSampleIndex(br, showStim), win)';
             lfp = reshape(lfp(ndx(:), :), size(ndx));
             
-            % bandpass-filter and resample
-            [p, q] = rat(2 * lowpass / Fs);
-            lfp = resample(lfp, p, q);
+            % bandpass-filter
             if highpass > 0
-                [b, a] = butter(5, highpass / lowpass, 'high');
-                lfp = filtfilt(b, a, lfp);
+                [b, a] = butter(5, highpass / Fs * 2, 'high');
+            else
+                [b, a] = butter(5, [highpass lowpass] / Fs * 2);
             end
+            lfp = filtfilt(b, a, lfp);
 
             % insert info database
             tuple = key;
-            tuple.evoked_lfp = lfp;
             tuple.avg_evoked_lfp = mean(lfp, 2);
             self.insert(tuple);
         end

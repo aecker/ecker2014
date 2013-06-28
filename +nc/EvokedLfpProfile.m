@@ -27,11 +27,16 @@ classdef EvokedLfpProfile < dj.Relvar & dj.AutoPopulate
     methods (Access = protected)
         function makeTuples(self, key)
             
+            % sampling rate
+            lfpFile = getLocalPath(fetch1(cont.Lfp & key, 'lfp_file', 'LIMIT 1'));
+            br = baseReader(lfpFile);
+            Fs = getSamplingRate(br);
+            
             % some parameters
             tuple = key;
             tuple.start_time = -1000;
             tuple.stop_time = 3000;
-            tuple.lfp_sampling_rate = 2 * key.max_freq;
+            tuple.lfp_sampling_rate = Fs;
             
             rel = cont.Lfp * acq.EphysStimulationLink * acq.Stimulation * ...
                 nc.EvokedLfpParams & ae.ProjectsStimulation & key;
