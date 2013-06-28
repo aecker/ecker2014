@@ -1,4 +1,4 @@
-function plotCSD(subjectId, varargin)
+function csd(subjectId, varargin)
 % Plot current source density profiles
 % AE 2013-02-13
 

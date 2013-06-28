@@ -32,8 +32,8 @@ run ~/lab/projects/anesthesia/code/setPath.m
 %
 % last update: 2013-03-27
 
-plotCSD(11)
-plotCSD(28)
+csd(11)
+csd(28)
 
 
 %% CSD debugging in first monkey
