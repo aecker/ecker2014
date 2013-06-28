@@ -12,7 +12,10 @@ lfp_sampling_rate   : double    # sampling rate
 classdef EvokedLfpProfile < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.EvokedLfpProfile');
-        popRel = acq.Sessions * nc.EvokedLfpParams & 'setup = 100';  % for anesthetized only
+        popRel = (acq.Sessions * nc.EvokedLfpParams & acq.Stimulation) ...
+            - ((acq.Stimulation * acq.EphysStimulationLink ...
+                * ae.ProjectsStimulation * nc.EvokedLfpParams ...
+                & 'project_name = "NoiseCorrAnesthesia"') - (cont.Lfp & stimulation.StimTrialGroup));
     end
     
     methods 
@@ -30,9 +33,8 @@ classdef EvokedLfpProfile < dj.Relvar & dj.AutoPopulate
             tuple.stop_time = 3000;
             tuple.lfp_sampling_rate = 2 * key.max_freq;
             
-            rel = cont.Lfp * acq.EphysStimulationLink * nc.Gratings * ...
-                acq.Stimulation * nc.EvokedLfpParams ...
-                & key & ae.ProjectsStimulation & 'exp_type = "AcuteGratingExperiment"';
+            rel = cont.Lfp * acq.EphysStimulationLink * acq.Stimulation * ...
+                nc.EvokedLfpParams & ae.ProjectsStimulation & key;
             stimKeys = fetch(rel);
             nStim = count(rel);
             

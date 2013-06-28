@@ -34,7 +34,13 @@ classdef EvokedLfp < dj.Relvar
             % extract stimulus-evoked responses
             Fs = getSamplingRate(br);
             win = (start / 1000 * Fs) : (stop / 1000 * Fs);
-            showStim = sort(fetchn(stimulation.StimTrialEvents & key & 'event_type = "showStimulus"', 'event_time'));
+            switch fetch1(acq.Stimulation & key, 'exp_type')
+                case 'AcuteGratingExperiment'
+                    showStim = sort(double(fetchn(stimulation.StimTrialEvents & key & 'event_type = "showStimulus"', 'event_time')));
+                case 'FlashingBar'
+                    params = fetch1(stimulation.StimTrials & key, 'trial_params');
+                    showStim = params.swapTimes(3 : 2 : end - 2);
+            end
             ndx = bsxfun(@plus, getSampleIndex(br, showStim), win)';
             lfp = reshape(lfp(ndx(:), :), size(ndx));
             

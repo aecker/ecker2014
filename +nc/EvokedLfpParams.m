@@ -1,8 +1,9 @@
 %{
-nc.EvokedLfpParams (computed) # stimulus-evoked LFP parameters
+nc.EvokedLfpParams (manual) # stimulus-evoked LFP parameters
 
 min_freq    : double    # highpass cutoff
 max_freq    : double    # lowpass cutoff
+exp_type    : ENUM("AcuteGratingExperiment", "FlashingBar")   # type of experiment
 ---
 %}
 
