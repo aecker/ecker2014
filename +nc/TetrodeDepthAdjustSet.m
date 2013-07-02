@@ -8,7 +8,8 @@ nc.TetrodeDepthAdjustSet (computed) # fine adjustment of relative depths
 classdef TetrodeDepthAdjustSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.TetrodeDepthAdjustSet');
-        popRel = nc.EvokedLfpProfile & 'exp_type = "AcuteGratingExperiment"';
+        popRel = nc.EvokedLfpProfile * acq.Subjects ...
+            & 'subject_name IN ("Brian", "Albert") AND exp_type = "AcuteGratingExperiment"';
     end
 
     methods
