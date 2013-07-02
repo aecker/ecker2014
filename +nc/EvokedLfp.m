@@ -45,9 +45,9 @@ classdef EvokedLfp < dj.Relvar
             
             % bandpass-filter
             if highpass > 0
-                [b, a] = butter(5, highpass / Fs * 2, 'high');
-            else
                 [b, a] = butter(5, [highpass lowpass] / Fs * 2);
+            else
+                [b, a] = butter(5, lowpass / Fs * 2, 'low');
             end
             lfp = filtfilt(b, a, lfp);
 
