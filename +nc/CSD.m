@@ -6,7 +6,7 @@ nc.CSD (computed) # Current source density of LFP
 ---
 csd_complete    : mediumblob    # CSD of entire trial
 csd_complete_t  : mediumblob    # times for CSD
-csd_on          : mediumblob    # CSD of on-response
+csd_on          : mediumblob    # CSD of on-response (muV/mm^2)
 csd_on_t        : mediumblob    # times for on response
 csd_off         : mediumblob    # CSD of off-response
 csd_off_t       : mediumblob    # times for off-response
@@ -76,12 +76,13 @@ classdef CSD < dj.Relvar & dj.AutoPopulate
             offNdx = t >= off(1) & t <= off(2);
             tuple.csd_off = csd(:, offNdx);
             tuple.csd_off_t = t(offNdx);
-            [i, j] = find(csd(:, onNdx) == max(reshape(csd(:, onNdx), [], 1)));
-            tuple.layer4_depth = d(i + 1);
-            tuple.csd_depths = d(2 : end - 1) - d(i + 1);
-            tuple.csd_source_t = tuple.csd_on_t(j);
-            [~, j] = find(csd(:, onNdx) == min(reshape(csd(:, onNdx), [], 1)));
-            tuple.csd_sink_t = tuple.csd_on_t(j);
+            [~, dNdx] = max(std(csd(:, onNdx), [], 2));
+            [~, tNdx] = max(csd(dNdx, onNdx));
+            tuple.layer4_depth = d(dNdx + 1);
+            tuple.csd_depths = d(2 : end - 1) - d(dNdx + 1);
+            tuple.csd_source_t = tuple.csd_on_t(tNdx);
+            [~, tNdx] = min(csd(dNdx, onNdx));
+            tuple.csd_sink_t = tuple.csd_on_t(tNdx);
             self.insert(tuple);
         end
     end
