@@ -35,8 +35,8 @@ classdef CSD < dj.Relvar & dj.AutoPopulate
             restr = sprintf('confidence > %.15f', key.min_confidence);
             n = 100;
             sd = 150;
-            on = [0 300];
-            off = [2000 2300];
+            on = [-100 300];
+            off = [1900 2300];
             
             % some metadata
             tet = fetchn(nc.TetrodeDepthAdjust & key & restr, 'electrode_num');
