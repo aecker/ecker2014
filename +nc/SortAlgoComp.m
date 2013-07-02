@@ -14,6 +14,7 @@ hit_frac                  : float      # percent hits
 mean_hits = NULL          : mediumblob # average waveform of all hits
 mean_missed_kalman = NULL : mediumblob # average waveform of misses by first algo
 mean_missed_mog = NULL    : mediumblob # average waveform of misses by second algo
+index_offset              : int        # spike index offset
 %}
 
 
@@ -38,6 +39,20 @@ classdef SortAlgoComp < dj.Relvar
             sortFile = [fetch1(sort.Sets(setfield(key, 'sort_method_num', 2)), 'sort_set_path') sprintf('/clusteringTT%d.mat', key.electrode_num)]; %#ok
             clustering = getfield(load(getLocalPath(sortFile)), 'clustering'); %#ok
             
+            % Determine index offset. Indices are sometimes off, presumably
+            % because of some inconsistentcy when loading the entire file
+            % or loading spikes by index. This may be because of zero-based
+            % indexing in C/C++, but may also be file-type specific. So we
+            % just determine the offset here
+            if ~isempty(clustering.spikeTimes)
+                first = min(clustering.noiseTimes(1), min(cellfun(@(x) x(1), clustering.spikeTimes)));
+            else
+                first = clustering.noiseTimes(1);
+            end
+            [~, ndx] = min(abs(first - model.t));
+            offset = clustering.idxRangeBegin - ndx;
+            key.index_offset = offset;
+            
             % test all combinations
             for unitMoKsm = unitsMoKsm'
                 for unitMoG = unitsMoG'
@@ -52,7 +67,7 @@ classdef SortAlgoComp < dj.Relvar
                     si = si(si >= clustering.idxRangeBegin & si <= clustering.idxRangeEnd);
                     sj = find(clustering.cluBySpike == tuple.compare_to_number);
 
-                    [hits, hiti, hitj] = intersect(si, sj);
+                    [hits, hiti, hitj] = intersect(si + offset, sj);
                     missMog = si(setdiff(1 : numel(si), hiti));
                     missKal = sj(setdiff(1 : numel(sj), hitj));
                     
