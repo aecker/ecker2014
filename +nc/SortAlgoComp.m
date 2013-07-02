@@ -14,9 +14,6 @@ hit_frac                  : float      # percent hits
 mean_hits = NULL          : mediumblob # average waveform of all hits
 mean_missed_kalman = NULL : mediumblob # average waveform of misses by first algo
 mean_missed_mog = NULL    : mediumblob # average waveform of misses by second algo
-ex_hits = NULL            : longblob   # examples of hits
-ex_missed_kalman = NULL   : longblob   # examples
-ex_missed_mog = NULL      : longblob   # examples
 %}
 
 
@@ -66,19 +63,12 @@ classdef SortAlgoComp < dj.Relvar
                     tuple.missed_mog = numel(missMog);
                     
                     % is the comparison a match? store waveform examples
-                    tuple.match = tuple.hits / min(tuple.num_spikes_kalman, tuple.num_spikes_mog);
-                    if tuple.match > 0.8
-                        N = 10000;
+                    tuple.hit_frac = tuple.hits / min(tuple.num_spikes_kalman, tuple.num_spikes_mog);
+                    if tuple.hit_frac > 0.8
                         w = cat(1, model.Waveforms.data{:});
                         tuple.mean_hits = mean(w(:, hits), 2);
                         tuple.mean_missed_kalman = mean(w(:, missKal), 2);
                         tuple.mean_missed_mog = mean(w(:, missMog), 2);
-                        r = randperm(numel(hits));
-                        tuple.ex_hits = w(:, hits(r(1 : min(N, end))));
-                        r = randperm(numel(missKal));
-                        tuple.ex_missed_kalman = w(:, missKal(r(1 : min(N, end))));
-                        r = randperm(numel(missMog));
-                        tuple.ex_missed_mog = w(:, missMog(r(1 : min(N, end))));
                     end
                     self.insert(tuple);
                 end
