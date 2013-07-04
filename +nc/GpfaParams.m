@@ -8,6 +8,7 @@ max_latent_dim  : tinyint unsigned  # max number of latent dimensions
 kfold_cv        : tinyint unsigned  # k-fold cross-validation
 zscore          : boolean           # convert to z-scores?
 max_instability : double            # minimum stability criterion
+min_rate        : double            # minimum firing rate
 %}
 
 classdef GpfaParams < dj.Relvar
