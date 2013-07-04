@@ -40,11 +40,14 @@ classdef UnitStats < dj.Relvar
             nTrials = fix(numel(spikes) / nCond) * nCond;
             [~, order] = sort(cond(1 : nTrials));
             counts = cellfun(@(x) numel(x(x > key.spike_count_start -300 & x < stimTime)), spikes);
-            if sum(counts(:))
-                R = corrcoef(reshape(counts(order), [], nCond));
-                tuple.instability = nanmean(R(~tril(ones(size(R)))));
+            R = corrcoef(reshape(counts(order), [], nCond));
+            tuple.instability = nanmean(R(~tril(ones(size(R)))));
+            if isnan(tuple.instability)
+                tuple.instability = 1;
+            end
 
-                % trial autocorrelogram (TAC) to assess stability
+            % trial autocorrelogram (TAC) to assess stability
+            if sum(counts(:))
                 z = counts;
                 for iCond = 1 : nCond
                     ndx = find(cond == iCond);
@@ -57,7 +60,6 @@ classdef UnitStats < dj.Relvar
                 tac = xcorr(z, k, 'coeff');
                 tuple.tac_instability = tac' * win;
             else
-                tuple.instability = 1;
                 tuple.tac_instability = 1;
             end
                 
