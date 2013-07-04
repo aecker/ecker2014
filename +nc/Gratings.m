@@ -32,12 +32,10 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             
             assert(count(self) == 1, 'Relvar must be scalar!')
             nCond = count(nc.GratingConditions & self);
-            validTrials = stimulation.StimTrials('valid_trial = true') & self;
-            nTrials = count(validTrials);
-            trialNums = sort(fetchn(validTrials, 'trial_num'));
-            lastTrial = trialNums(fix(nTrials / nCond) * nCond);
+            trialNums = fetchn(self * stimulation.StimTrials & 'valid_trial = true', 'trial_num', 'ORDER BY trial_num');
+            lastTrial = trialNums(fix(numel(trialNums) / nCond) * nCond);
             restriction = sprintf('valid_trial = true AND trial_num <= %d', lastTrial);
-            trials = self * stimulation.StimTrials(restriction) * nc.GratingTrials;
+            trials = self * stimulation.StimTrials * nc.GratingTrials & restriction;
         end
     end
 
