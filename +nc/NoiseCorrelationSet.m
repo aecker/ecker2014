@@ -49,8 +49,10 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
             rates = rates / duration * 1000;
             
             % high-pass filter z-scores
-            [b, a] = butter(5, 1 / 50, 'high');
-            Rf = corrcoef(filtfilt(b, a, z));
+            k = 40;
+            b = fir1(k, 1/10, 'high');
+            zf = filter(b, 1, z);
+            Rf = corrcoef(zf(k + 1 : end, :)); % remove filter warmup
             
             % summary statistics for the cells
             highContrast = fetch1(nc.OriTuning & key, 'max(contrast) -> c');
