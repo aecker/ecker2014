@@ -32,10 +32,9 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             
             assert(count(self) == 1, 'Relvar must be scalar!')
             nCond = count(nc.GratingConditions & self);
-            trialNums = fetchn(self * stimulation.StimTrials & 'valid_trial = true', 'trial_num', 'ORDER BY trial_num');
+            trialNums = fetchn(self * nc.GratingTrials, 'trial_num', 'ORDER BY trial_num');
             lastTrial = trialNums(fix(numel(trialNums) / nCond) * nCond);
-            restriction = sprintf('valid_trial = true AND trial_num <= %d', lastTrial);
-            trials = self * stimulation.StimTrials * nc.GratingTrials & restriction;
+            trials = self * nc.GratingTrials & sprintf('trial_num <= %d', lastTrial);
         end
     end
 
@@ -43,14 +42,14 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
         function makeTuples(this, key)
             
             % catch old legacy datasets
-            if any(strcmp(fetch1(acq.Stimulation(key), 'exp_type'), {'mgrad', 'movgrad'}))
+            if any(strcmp(fetch1(acq.Stimulation & key, 'exp_type'), {'mgrad', 'movgrad'}))
                 makeTuplesMPI(this, key)
                 return
             end
             
             % Grating session
             tuple = key;
-            rel = stimulation.StimTrialGroup(key);
+            rel = stimulation.StimTrialGroup & key;
             tuple.speed = getConstant(rel, 'speed');
             location = getConstant(rel, 'location', 'UniformOutput', false);
             tuple.location_x = location{1}(1);
@@ -65,28 +64,30 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
                 tmp = fetchn(rel * stimulation.StimTrials, 'trial_params');
                 tuple.post_stimulus_time = min(cellfun(@(x) x.delayTime, tmp)) - tuple.stimulus_time;
             end
-            insert(this, tuple);
             
             % Conditions
-            rel = stimulation.StimConditions(key);
+            rel = stimulation.StimConditions & key;
             direction = getConditionParam(rel, 'orientation');
             contrast = getConditionParam(rel, 'contrast');
             diskSize = getConditionParam(rel, 'diskSize');
             initialPhase = getConditionParam(rel, 'initialPhase');
             conditions = fetch(rel);
-            for i = 1:numel(conditions)
+            for i = 1 : numel(conditions)
                 conditions(i).orientation = mod(direction(i), 180);
                 conditions(i).direction = direction(i);
                 conditions(i).contrast = contrast(i);
                 conditions(i).disk_size = diskSize(i);
                 conditions(i).initial_phase = initialPhase(i);
             end
-            insert(nc.GratingConditions, conditions);
             
             % Trials
-            trials = fetch(stimulation.StimTrials(key));
-            condition = getParam(stimulation.StimTrials(key), 'condition', 'UniformOutput', false);
+            key.valid_trial = true;
+            trials = fetch(stimulation.StimTrials & key, 'ORDER BY trial_num');
+            condition = getParam(stimulation.StimTrials & key, 'condition', 'UniformOutput', false);
             [trials.condition_num] = deal(condition{:});
+            
+            insert(this, tuple);
+            insert(nc.GratingConditions, conditions);
             insert(nc.GratingTrials, trials);
         end
     end
@@ -95,11 +96,11 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
         function makeTuplesMPI(this, key)
             % Import old MPI data (separate to keep makeTuples clean)
             
-            expType = fetch1(acq.Stimulation(key), 'exp_type');
+            expType = fetch1(acq.Stimulation & key, 'exp_type');
             
             % Grating session
             tuple = key;
-            rel = stimulation.StimTrialGroup(key);
+            rel = stimulation.StimTrialGroup & key;
             tuple.speed = 3.4 * isequal(expType, 'movgrad');
             tuple.location_x = getConstant(rel, 'xOffset');
             tuple.location_y = getConstant(rel, 'yOffset');
@@ -107,29 +108,29 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             tuple.stimulus_time = getConstant(rel, 'stimulusTime');
             tuple.post_stimulus_time = 0;
             diskSize = getConstant(rel, 'diskSize');
-            insert(this, tuple);
             
             % Conditions
-            rel = stimulation.StimConditions(key);
+            rel = stimulation.StimConditions & key;
             direction = getConditionParam(rel, 'orientation');
             contrast = getConditionParam(rel, 'contrast');
             conditions = fetch(rel);
-            for i = 1:numel(conditions)
+            for i = 1 : numel(conditions)
                 conditions(i).orientation = mod(direction(i), 180);
                 conditions(i).direction = direction(i);
                 conditions(i).contrast = contrast(i);
                 conditions(i).disk_size = diskSize;
                 conditions(i).initial_phase = 0;
             end
-            insert(nc.GratingConditions, conditions);
             
             % Trials
-            trials = fetch(stimulation.StimTrials(key));
-            condition = getParam(stimulation.StimTrials(key), 'condition');
-            condition(isnan(condition)) = 1;
-            condition = num2cell(condition);
+            key.valid_trial = true;
+            trials = fetch(stimulation.StimTrials & key, 'ORDER BY trial_num');
+            condition = getParam(stimulation.StimTrials & key, 'condition', 'UniformOutput', false);
             [trials.condition_num] = deal(condition{:});
-            insert(nc.GratingTrials, trials);            
+            
+            insert(this, tuple);
+            insert(nc.GratingConditions, conditions);
+            insert(nc.GratingTrials, trials);
         end
     end
 end

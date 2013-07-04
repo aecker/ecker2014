@@ -30,7 +30,7 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
             unitIds = reshape(unitIds, 2, []);
             counts = fetchn(ae.SpikeCounts & key, 'spike_count', 'ORDER BY unit_id, trial_num');
             counts = reshape(counts, [], nUnits);
-            cond = fetchn(nc.GratingTrials * stimulation.StimTrials & key & 'valid_trial = true', 'condition_num', 'ORDER BY trial_num');
+            cond = fetchn(nc.GratingTrials & key, 'condition_num', 'ORDER BY trial_num');
             
             % compute noise correlations and z-scores for each condition
             r = zeros(nCond, nPairs);

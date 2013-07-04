@@ -26,9 +26,8 @@ classdef LnpModel3Set < dj.Relvar & dj.AutoPopulate
             
             tuple = key;
             tuple.bin_size = 1000 / (key.max_freq * 2);
-            tuple.min_trials = min(fetchn(nc.Gratings(key) * nc.GratingConditions, ...
-                nc.GratingTrials & stimulation.StimTrials('valid_trial = true'), ...
-                'count(subject_id) -> n'));
+            tuple.min_trials = min(fetchn(nc.Gratings * nc.GratingConditions & key, ...
+                nc.GratingTrials, 'count(1) -> n'));
             self.insert(tuple);
             
             % LFP data

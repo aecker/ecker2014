@@ -19,9 +19,8 @@ gpfaBins = 30 + (b / 2 : b : s);
 window = [-300, s + 400];
 state = fetch1(nc.Anesthesia & key, 'state');
 
-key.valid_trial = true;
 nUnits = count(nc.GpfaUnits & key);
-nTrials = count(nc.GratingTrials * stimulation.StimTrials & key);
+nTrials = count(nc.GratingTrials & key);
 
 spikes = (nc.GpfaUnits * ae.SpikesByTrial * nc.GratingConditions * nc.GratingTrials * stimulation.StimTrials) & key;
 spikes = fetch(spikes, 'spikes_by_trial');

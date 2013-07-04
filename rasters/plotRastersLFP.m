@@ -26,7 +26,7 @@ key.sort_method_num = sortMethodNum;
 nCond = count(nc.GratingConditions(key));
 trialList = sprintf('condition_num = %d AND trial_num BETWEEN %d AND %d', ...
     conditionNum, nCond * (blocks(1) - 1), nCond * blocks(2));
-trialRel = nc.GratingTrials(key) & trialList & stimulation.StimTrials('valid_trial = true');
+trialRel = nc.GratingTrials & key & trialList;
 
 rel = trialRel * acq.EphysStimulationLink * sort.Sets(key) * ae.SpikesByTrial;
 spikes = fetch(rel, 'spikes_by_trial', 'condition_num');

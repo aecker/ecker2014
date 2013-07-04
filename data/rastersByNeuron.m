@@ -2,13 +2,11 @@ function rastersByNeuron(key, trials, units)
 % Visualize spike rasters by neuron.
 % AE 2013-06-13
 
-key.valid_trial = true;
-
 s = fetch1(nc.Gratings & key, 'stimulus_time');
 window = [-300, s + 400];
 
 nUnits = count(ephys.Spikes & key);
-nTrials = count(nc.GratingTrials * stimulation.StimTrials & key);
+nTrials = count(nc.GratingTrials & key);
 
 spikes = (ae.SpikesByTrial * nc.GratingConditions * nc.GratingTrials * stimulation.StimTrials) & key;
 spikes = fetch(spikes, 'spikes_by_trial', 'ORDER BY trial_num, unit_id');

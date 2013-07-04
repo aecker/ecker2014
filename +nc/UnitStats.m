@@ -34,7 +34,7 @@ classdef UnitStats < dj.Relvar
             % To get maximal power in detecting instabilities we use a
             % large window to count spikes (including fixation)
             stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
-            rel = ae.SpikesByTrial * stimulation.StimTrials * nc.GratingTrials & key & 'valid_trial = true';
+            rel = ae.SpikesByTrial * nc.GratingTrials & key;
             nCond = count(stimulation.StimConditions & key);
             [spikes, cond] = fetchn(rel, 'spikes_by_trial', 'condition_num', 'ORDER BY trial_num');
             nTrials = fix(numel(spikes) / nCond) * nCond;
