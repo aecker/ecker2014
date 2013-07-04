@@ -110,7 +110,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
 
                 % remove cells with zero variance in at least one set
                 for k = 1 : par.kfold_cv
-                    train = part(k) + 1 : part(k + 1);
+                    train = setdiff(part(1) + 1 : part(end), part(k) + 1 : part(k + 1));
                     Yk = reshape(Y(:, :, train), numel(unitIds), []);
                     sd = std(Yk, [], 2);
                     Y = Y(sd > 0, :, :);
@@ -156,7 +156,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 for p = 0 : par.max_latent_dim
                     fprintf('p = %d\n', p)
                     for k = 1 : par.kfold_cv
-                        train = part(k) + 1 : part(k + 1);
+                        train = setdiff(part(1) + 1 : part(end), part(k) + 1 : part(k + 1));
                         test = setdiff(1 : nTrials, train);
                         model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
                         model = model.fit(Y(:, :, train), p, 'hist');
