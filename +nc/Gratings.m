@@ -9,6 +9,8 @@ location_y         : float # stimulus center (y coordinate in px)
 spatial_freq       : float # spatial frequency
 stimulus_time      : float # duration of stimulus in ms
 post_stimulus_time : float # time monkey has to fixate after stimulus
+trials_per_cond    : int   # min number of trials per condition
+total_num_trials   : int   # total number of valid trials
 %}
 
 classdef Gratings < dj.Relvar & dj.AutoPopulate
@@ -85,6 +87,9 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             trials = fetch(stimulation.StimTrials & key, 'ORDER BY trial_num');
             condition = getParam(stimulation.StimTrials & key, 'condition', 'UniformOutput', false);
             [trials.condition_num] = deal(condition{:});
+
+            tuple.trials_per_cond = fix(numel(trials) / numel(conditions));
+            tuple.total_num_trials = numel(trials);
             
             insert(this, tuple);
             insert(nc.GratingConditions, conditions);
@@ -127,6 +132,9 @@ classdef Gratings < dj.Relvar & dj.AutoPopulate
             trials = fetch(stimulation.StimTrials & key, 'ORDER BY trial_num');
             condition = getParam(stimulation.StimTrials & key, 'condition', 'UniformOutput', false);
             [trials.condition_num] = deal(condition{:});
+
+            tuple.trials_per_cond = fix(numel(trials) / numel(conditions));
+            tuple.total_num_trials = numel(trials);
             
             insert(this, tuple);
             insert(nc.GratingConditions, conditions);
