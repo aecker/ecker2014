@@ -78,8 +78,8 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
                 tuple.diff_pref_ori = abs(angle(exp(2i * diff(pref(unitIds(:, iPair)))))) / 2;
                 tuple.r_signal = corr(rates(:, ui), rates(:, uj));
                 tuple.distance = sqrt(diff(x(unitIds(:, iPair))) .^ 2 + diff(y(unitIds(:, iPair))) .^ 2);
-                tuple.max_instab = max(instab(ui), instab(uj));
-                tuple.max_contam = max(contam(ui), contam(uj));
+                tuple.instab = max(instab(ui), instab(uj));
+                tuple.contam = max(contam(ui), contam(uj));
 
                 % trial cross-correlogram (TCC)
                 k = 20;

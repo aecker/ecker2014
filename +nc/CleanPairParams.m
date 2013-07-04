@@ -2,7 +2,7 @@
 nc.CleanPairParams (manual) # Parameters defining a clean pair
 
 max_contam      : double    # maximum contamination
-min_stability   : double    # minimum stability
+max_instability : double    # minimum stability
 ---
 %}
 

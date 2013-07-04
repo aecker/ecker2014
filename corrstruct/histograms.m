@@ -4,7 +4,7 @@ function histograms
 
 % key for analysis parameters
 keys = struct('sort_method_num', 5, ...
-              'min_stability', 0.1, ...
+              'max_instability', 0.1, ...
               'max_contam', 0.1, ...
               'spike_count_end', {530 530}, ...
               'state', {'awake', 'anesthetized'});
@@ -18,7 +18,7 @@ b = 0.15;
 bins = 0.1 : b : 4;
 for iKey = 1 : numel(keys)
     key = keys(iKey);
-    restr = sprintf('stability < %f AND (fp + fn) < %f', key.min_stability, key.max_contam);
+    restr = sprintf('tac_instability < %f AND (fp + fn) < %f', key.max_instability, key.max_contam);
     F = fetchn(nc.Anesthesia * nc.UnitStats * ephys.SingleUnit & key & restr, 'mean_fano');
     h = hist(F, bins);
     h = h / sum(h);

@@ -35,7 +35,7 @@ classdef Pca < dj.Relvar & dj.AutoPopulate
         function makeTuples(self, key)
             
             % remove unstable cells
-            unitKey = sprintf('stability < %f', key.min_stability);
+            unitKey = sprintf('tac_instability < %f', key.max_instability);
             nUnits = count(nc.UnitStats & key & unitKey);
             nCond = count(nc.GratingConditions & key);
             

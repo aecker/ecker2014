@@ -8,7 +8,8 @@ mean_rate        : float    # average firing rate
 mean_count       : float    # mean spike count
 mean_var         : float    # average variance
 mean_fano = NULL : float    # average fano factor
-stability        : float    # stability measure
+instability      : float    # simple stability measure
+tac_instability  : float    # TAC-based statility
 %}
 
 classdef UnitStats < dj.Relvar
@@ -32,26 +33,38 @@ classdef UnitStats < dj.Relvar
             %
             % To get maximal power in detecting instabilities we use a
             % large window to count spikes (including fixation)
-            stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
-            rel = (ae.SpikesByTrial(key) & stimulation.StimTrials('valid_trial = true')) * nc.GratingTrials(key);
-            nCond = count(stimulation.StimConditions(key));
-            minTrials = fix(count(rel) / nCond);
-            spikes = ae.SpikesByTrial.spikeCountStruct(rel, [-300, stimTime], 'condition_num', minTrials * nCond);
-            spikes = dj.struct.sort(spikes, 'condition_num');
-            counts = reshape([spikes.spike_count], [], nCond);
-            R = corrcoef(counts);
-            tuple.stability = nanmean(R(~tril(ones(size(R)))));
-            if isnan(tuple.stability) % i.e. no spikes at all
-                tuple.stability = 1;
+            stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
+            rel = ae.SpikesByTrial * stimulation.StimTrials * nc.GratingTrials & key & 'valid_trial = true';
+            nCond = count(stimulation.StimConditions & key);
+            [spikes, cond] = fetchn(rel, 'spikes_by_trial', 'condition_num', 'ORDER BY trial_num');
+            nTrials = fix(numel(spikes) / nCond) * nCond;
+            [~, order] = sort(cond(1 : nTrials));
+            counts = cellfun(@(x) numel(x(x > key.spike_count_start -300 & x < stimTime)), spikes);
+            if sum(counts(:))
+                R = corrcoef(reshape(counts(order), [], nCond));
+                tuple.instability = nanmean(R(~tril(ones(size(R)))));
+
+                % trial autocorrelogram (TAC) to assess stability
+                z = counts;
+                for iCond = 1 : nCond
+                    ndx = find(cond == iCond);
+                    z(ndx) = zscore(z(ndx), 1);
+                end
+                k = 20;
+                win = gausswin(2 * k + 1);
+                win(k + 1) = 0;
+                win = win / sum(win);
+                tac = xcorr(z, k, 'coeff');
+                tuple.tac_instability = tac' * win;
+            else
+                tuple.instability = 1;
+                tuple.tac_instability = 1;
             end
-            
+                
             % Mean firing rates and variances. Here we use the window of
             % interest for the analysis, defined by the SpikeCounts table
-            trials = validTrialsCompleteBlocks(nc.Gratings(key));
-            nCond = count(nc.GratingConditions(key));
-            data = fetch(ae.SpikeCounts(key) * trials, 'spike_count', 'condition_num');
-            data = dj.struct.sort(data, 'condition_num');
-            counts = reshape([data.spike_count], [], nCond);
+            counts = cellfun(@(x) numel(x(x > key.spike_count_start & x < key.spike_count_end)), spikes);
+            counts = reshape(counts(order), [], nCond);
             tuple.mean_count = mean(counts(:));
             tuple.mean_var = mean(var(counts, [], 1));
             tuple.mean_fano = nanmean(var(counts, [], 1) ./ mean(counts, 1));

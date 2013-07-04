@@ -1,7 +1,7 @@
 %{
 nc.PcaParams (manual) # PCA parameters
 
-min_stability   : double            # minimum stability criterion
+max_instability   : double            # minimum stability criterion
 ---
 %}
 

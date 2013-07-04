@@ -111,7 +111,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 set = key;
                 set.spike_count_start = offset;
                 set.spike_count_end = stimTimeLimit + offset;
-                unitKey = sprintf('stability < %f', par.min_stability);
+                unitKey = sprintf('tac_instability < %f', par.max_instability);
                 unitIds = fetchn(nc.UnitStats * nc.Gratings & set & unitKey, 'unit_id');
 
                 % remove low-firing rate cells

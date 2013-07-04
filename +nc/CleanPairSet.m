@@ -25,7 +25,7 @@ classdef CleanPairSet < dj.Relvar & dj.AutoPopulate
             insert(this, key);
             excludePairs = nc.UnitPairMembership & key & ( ...
                 (ephys.SingleUnit & key & sprintf('fp + fn > %f', key.max_contam)) + ...
-                (nc.UnitStats & key & sprintf('stability > %f', key.min_stability)));
+                (nc.UnitStats & key & sprintf('tac_instability > %f', key.max_instability)));
             tuples = fetch((nc.CleanPairSet * nc.UnitPairs - excludePairs) & key);
             insert(nc.CleanPairs, tuples);
         end

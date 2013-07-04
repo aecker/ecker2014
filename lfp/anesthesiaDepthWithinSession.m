@@ -25,7 +25,7 @@ key.transform_num = 2;
 key.gpfa_param_num = 4;
 
 % exclude unstable cells
-excludePairs = nc.UnitPairMembership * nc.UnitStats & 'stability > 0.2';
+excludePairs = nc.UnitPairMembership * nc.UnitStats & 'tac_instability > 0.2';
 
 % average correlations within sessions first, then do stats over sessions
 [r, ratio, v] = fetchn(nc.LfpPowerRatioCorr * nc.LfpPowerRatioGpfaParams * nc.LfpPowerRatioGpfa & key, ...

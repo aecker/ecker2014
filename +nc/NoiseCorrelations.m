@@ -14,8 +14,8 @@ geom_mean_rate      : double     # average geometric mean firing rate
 min_rate            : double     # average minimum firing rate
 diff_pref_ori       : double     # difference in preferred orientation
 distance            : double     # distance between cells (tetrodes)
-max_instab          : double     # max instability for pair
-max_contam          : double     # max contamination for pair
+instab              : double     # max instability for pair
+contam              : double     # max contamination for pair
 %}
 
 classdef NoiseCorrelations < dj.Relvar

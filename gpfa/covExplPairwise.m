@@ -12,7 +12,7 @@ key.by_trial = false;
 key.sort_method_num = 5;
 key.bin_size = 100;
 key.max_latent_dim = 10;
-key.min_stability = 0.1;
+key.max_instability = 0.1;
 key.kfold_cv = 2;
 key = genKey(key, varargin{:});
 assert(isscalar(key) && ~any(cellfun(@isempty, varargin(2 : 2 : end))), 'Parameters not unique!')

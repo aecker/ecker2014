@@ -15,7 +15,7 @@ key.sort_method_num = 5;
 key.bin_size = 100;
 key.max_latent_dim = 1;
 key.latent_dim = 1;
-key.min_stability = 0.1;
+key.max_instability = 0.1;
 key.kfold_cv = 2;
 key = genKey(key, varargin{:});
 
