@@ -79,7 +79,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 par.min_rate, par.max_instability, offset, 500 + offset);
             unitStats = nc.UnitStats * nc.UnitStatsConditions;
             nUnits = count(unitStats & key & unitConstraints);
-            if nUnits < par.max_latent_dim
+            if nUnits <= par.max_latent_dim
                 return
             end
             
@@ -117,7 +117,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     unitIds = unitIds(sd > 0);
                 end
                 Yraw = Y;
-                if numel(unitIds) < par.max_latent_dim
+                if numel(unitIds) <= par.max_latent_dim
                     return
                 end
 
