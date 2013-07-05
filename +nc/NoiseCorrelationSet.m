@@ -76,7 +76,7 @@ classdef NoiseCorrelationSet < dj.Relvar & dj.AutoPopulate
                 tuple.r_noise_avg = nanmean(r(:, iPair));
                 tuple.r_noise_filt = Rf(ui, uj);
                 tuple.geom_mean_rate = mean(sqrt(prod(rates(:, unitIds(:, iPair)), 2)));
-                tuple.min_rate = mean(min(rates(:, unitIds(:, iPair)), [], 2));
+                tuple.minimum_rate = mean(min(rates(:, unitIds(:, iPair)), [], 2));
                 tuple.diff_pref_ori = abs(angle(exp(2i * diff(pref(unitIds(:, iPair)))))) / 2;
                 tuple.r_signal = corr(rates(:, ui), rates(:, uj));
                 tuple.distance = sqrt(diff(x(unitIds(:, iPair))) .^ 2 + diff(y(unitIds(:, iPair))) .^ 2);
