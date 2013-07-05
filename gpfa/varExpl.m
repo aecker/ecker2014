@@ -28,7 +28,7 @@ fr = cell(1, N);
 for i = 1 : N
     rel = nc.Anesthesia * nc.GpfaParams * nc.GpfaModelSet * nc.GpfaVarExpl * nc.UnitStatsConditions;
     rel = rel & key & stateKeys(i);
-    [ve{i}, fr{i}] = fetchn(rel, '1 - var_unexpl_test -> v', 'mean_rate_cond');
+    [ve{i}, fr{i}] = fetchn(rel, 'var_expl_test -> v', 'mean_rate_cond');
 end
 
 % Plot
