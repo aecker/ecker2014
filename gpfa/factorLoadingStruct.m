@@ -1,80 +1,123 @@
-function factorLoadingStruct(transformNum, zscore, p)
+function factorLoadingStruct(varargin)
 % Structure of factor loadings.
-%   factorLoadingStruct(transformNum, zscore, p)
+%   factorLoadingStruct()
 %
 %   This function plots the structure of the factor loadings for a p-factor
 %   model in various ways.
 %
 % AE 2012-01-22
 
-binSize = 100;
-restrictions = {sprintf('subject_id in (9, 11) AND sort_method_num = 5 AND kfold_cv = 2 AND cv_run = 1 AND bin_size = %d AND latent_dim = %d', binSize, p), ...
-                 struct('transform_num', transformNum, 'zscore', zscore)};
+% key for analysis parameters/subjects etc.
+key.transform_num = 5;
+key.zscore = false;
+key.sort_method_num = 5;
+key.bin_size = 100;
+key.max_latent_dim = 1;
+key.latent_dim = 1;
+key.max_instability = 0.1;
+key.kfold_cv = 1;
+key.spike_count_end = 530;
+key = genKey(key, varargin{:});
 
-rel = nc.GpfaParams * nc.GpfaModelSet * nc.GpfaModel & restrictions;
-[model, Y, train] = fetchn(rel, 'model', 'transformed_data', 'train_set');
+% Compute variance explained
+stateKeys = struct('state', {'awake', 'anesthetized'});
+nStates = numel(stateKeys);
 
-% normalize latent factors
-normalize = @(model, Y, ndx) normFactors(GPFA(model), Y(:, :, ndx));
-model = cellfun(normalize, model, Y, train, 'uni', false);
-
-% order factors by variance explained
-n = numel(model);
-C = cell(n, 1);
-for i = 1 : n
-    Ci = model{i}.C;
-    [~, order] = sort(sqrt(sum(Ci .^ 2, 1)), 'descend');    % sort by norm
-    Ci = Ci(:, order);
-    Ci = bsxfun(@times, Ci, sign(median(Ci, 1)));           % sign flip
-    C{i} = sort(Ci, 'descend');                             % sort neurons
-end
-Call = cat(1, C{:});
-
-% plot distribution of loadings
 rng(1)
-figure(100 * transformNum + 10 * zscore + p), clf
-M = p; N = 3; K = 1;
+fig = Figure(1, 'size', [90 140]);
+M = 3; N = nStates; K = 1;
 
-for i = 1 : p
+for iState = 1 : nStates
 
-    % distribution of loadings sorted per site
+    % obtain factor loadings
+    rel = nc.Anesthesia * nc.GpfaParams * nc.GpfaModelSet * nc.GpfaModel & key & stateKeys(iState);
+    [model, Y, train] = fetchn(rel, 'model', 'transformed_data', 'train_set');
+    Ci = cellfun(@getLoadings, model, Y, train, 'uni', false);
+    C = cat(1, Ci{:});
+    
+    % plot distribution of loadings
     subplot(M, N, K); K = K + 1;
-    x = cellfun(@(C) linspace(0, 1, size(C, 1))', C, 'uni', false);
+    x = cellfun(@(C) linspace(0, 1, size(C, 1))', Ci, 'uni', false);
     x = cat(1, x{:});
-    plot(x + randn(size(x)) / 100, Call(:, i), '.k', 'markersize', 1)
+    plot(x + randn(size(x)) / 50, C, '.k', 'markersize', 1)
     hold on
     bins = -0.025 : 0.05 : 1.025;
-    binc = bins(1 : end - 1) + diff(bins(1 : 2)) / 2;
-    [~, bin] = histc(x, bins);
-    m = accumarray(bin, Call(:, i), [numel(bins) - 1, 1], @mean);
-    plot(binc, m, 'r')
-    set(gca, 'xlim', [-0.05 1.05], 'box', 'off', 'xtick', [0.1 0.9], 'xticklabel', {'strongest', 'weakest'})
+    [m, binc] = makeBinned(x, C, bins, @mean, 'include');
+    plot(binc, m, 'color', colors(stateKeys(iState).state))
+    set(gca, 'xlim', [-0.05 1.05], 'xtick', [0.1 0.9], 'xticklabel', {'weakest', 'strongest'}, 'ylim', [-1 1])
     plot(xlim, [0 0], 'k')
-    xlabel('Cells sorted by factor loadings')
-    ylabel('Factor loading')
+    if iState == nStates
+        xlabel('Cells sorted by weight')
+    end
+    ylabel('Weight')
+    axis square
     
     % overall distribution of loadings
     subplot(M, N, K); K = K + 1;
-    bins = -1 : 0.05 : 1;
-    binc = bins(1 : end - 1) + diff(bins(1 : 2)) / 2;
-    h = hist(Call(:, i), bins);
-    h = h(1 : end - 1) / sum(h);
-    bar(binc, h, 1, 'facecolor', 0.5 * ones(1, 3))
+    bins = -0.325 : 0.05 : 0.65;
+    h = hist(C, bins);
+    h = h / sum(h);
+    bar(bins, h, 1, 'facecolor', colors(stateKeys(iState).state), 'linestyle', 'none')
     hold on
     plot([0 0], ylim, '--k')
-    xlabel('Factor loading')
+    if iState == nStates
+        xlabel('Weight')
+    end
     ylabel('Fraction of cells')
-    set(gca, 'xlim', [-1 1], 'box', 'off')
+    set(gca, 'xlim', [-0.35 0.65], 'xtick', -0.3 : 0.3 : 0.6)
+    axis square
     
-    % distribution of average loadings per site
-    subplot(M, N, K); K = K + 1;
-    m = cellfun(@(C) abs(mean(C(:, i))), C);
-    bins = 0 : 0.0125 : 0.4;
-    binc = bins(1 : end - 1) + diff(bins(1 : 2)) / 2;
-    h = histc(m, bins);
-    h = h(1 : end - 1) / sum(h);
-    bar(binc, h, 1, 'facecolor', 0.5 * ones(1, 3))
-    xlabel('Average factor loading')
-    ylabel('Fraction of sites')
-    set(gca, 'xlim', [0, bins(end)], 'box', 'off')
+    subplot(M, N, 5 : 6)
+    bins = -0.3025 : 0.005 : 0.605;
+    hold on
+    hci = bootstrap(Ci, bins);
+    c = 0.3 * colors(stateKeys(iState).state) + 0.7 * ones(1, 3);
+    [x, y] = makePatch(bins + 0.0025, hci, [-0.3 0.6]);
+    patch(x, y, c, 'linestyle', 'none');
+    h = hist(C, bins);
+    h = h / sum(h);
+    plot(bins + 0.0025, cumsum(h), 'color', colors(stateKeys(iState).state))
 end
+set(gca, 'xlim', [-0.3 0.6], 'xtick', -0.3 : 0.1 : 0.6, 'ylim', [0 1.001]);
+xlabel('Weight')
+ylabel('Cumulative distribution')
+plot([0 0], [0 1], '--k')
+
+fig.cleanup();
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save(file)
+
+
+function C = getLoadings(model, Y, ndx)
+
+model = GPFA(model);
+model = model.normFactors(Y(:, :, ndx));
+C = model.C;
+C = C * sign(median(C));
+C = sort(C);
+
+
+function hci = bootstrap(Ci, bins)
+% Bootstrap cumulative distribution using zero-mean Gaussian and sign flip
+
+K = 1000;
+N = numel(Ci);
+Cr = cell(1, N);
+for i = 1 : N
+    C = Ci{i};
+    C = bsxfun(@times, sign(randn(size(C, 1), K)), C);
+    Cr{i} = bsxfun(@times, C, sign(median(C)));
+end
+Cr = cat(1, Cr{:});
+h = hist(Cr, bins);
+h = bsxfun(@rdivide, h, sum(h, 1));
+hci = prctile(cumsum(h, 1), [5 95], 2);
+
+
+function [x, y] = makePatch(bins, hci, xr)
+% convert lower and upper confidence bands to (x, y) pairs for patch()
+
+ndx = bins >= xr(1) & bins <= xr(2);
+x = [bins(ndx), fliplr(bins(ndx))];
+y = [hci(ndx, 1); flipud(hci(ndx, 2))]';
+

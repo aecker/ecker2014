@@ -146,22 +146,21 @@ verifyResidCov()
 % Here we look at the distribution of factor loadings for the one-factor
 % GPFA model.
 %
-%   * Overall most of the loadings are positive (< 10% negative)
+%   * Under anesthesia most of the loadings are positive (< 15% negative)
+%     while during wakefulness they are close to what is expected by
+%     drawing weights with random sign.
 %
-%   * Minor caveat to keep in mind: since the sign is arbitrary we flip it
-%     such that the median is positive (i.e. more cells with positve
-%     loadings than with negative). The sign flipping makes the loadings
-%     positive on average, even if there is no real effect. The last panel
-%     shows that this is not an issue since in such a case the means should
-%     be distributed around zero, i.e. the peak of the distribution should
-%     be at zero and not at a non-zero value.
+%   * Keep in mind: since the sign is arbitrary we flip it such that the
+%     median is positive (i.e. more cells with positve loadings than with
+%     negative). The sign flipping makes the loadings positive on average,
+%     even if there is no real effect. Therefore I run a bootstrap where I
+%     randomly flip the sign of each weight and recompute the cumulative
+%     distribution. They light shaded region shows the 95% confidence
+%     interval.
 %
-% last update: 2013-01-24
+% last update: 2013-07-16
 
-transformNum = 2;
-zscore = 1;
-p = 2;
-factorLoadingStruct(transformNum, zscore, p)
+factorLoadingStruct()
 
 
 %% Structure of factor loadings with respect to cell properties
