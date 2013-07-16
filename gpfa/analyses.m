@@ -64,7 +64,7 @@ analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', true)
 % last update: 2013-03-07
 
 varExpl('by_trial', false)
-varExpl('by_trial', true)
+varExpl('by_trial', true, 'spike_count_end', 530)
 
 
 %% Timescale of latent factor (for one-factor GPFA model)
@@ -234,10 +234,6 @@ rastersByTrial(awKey, reshape(1:20, 10, 2), true);
 %
 % last update: 2013-01-24
 
-pmax = 3;
-transformNum = 2;
-zscore = 1;
-coeff = 1;
 residCorrStruct('by_trial', false)
 residCorrStruct('by_trial', true)
-
+residCorrStruct('by_trial', true, 'spike_count_end', 530, 'control', [])
