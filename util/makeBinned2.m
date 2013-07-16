@@ -34,7 +34,7 @@ switch outliers
         j(j < jbins(1)) = jbins(1);
         j(j >= jbins(end)) = (jbins(end - 1) + jbins(end)) / 2;
     otherwise
-        assert(all(i >= ibins(1) & i < ibins(end) & j > jbins(1) & j < jbins(end)), ...
+        assert(all(i >= ibins(1) & i < ibins(end) & j >= jbins(1) & j < jbins(end)), ...
             'bins must cover the full range of (x, y) values ([%f, %f], [%f, %f])!', min(i), max(i), min(j), max(j))
 end
 
