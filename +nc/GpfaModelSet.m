@@ -109,12 +109,14 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 part = round(linspace(0, nTrials, par.kfold_cv + 1));
 
                 % remove cells with zero variance in at least one set
-                for k = 1 : par.kfold_cv
-                    train = setdiff(part(1) + 1 : part(end), part(k) + 1 : part(k + 1));
-                    Yk = reshape(Y(:, :, train), numel(unitIds), []);
-                    sd = std(Yk, [], 2);
-                    Y = Y(sd > 0, :, :);
-                    unitIds = unitIds(sd > 0);
+                if par.kfold_cv > 1
+                    for k = 1 : par.kfold_cv
+                        train = setdiff(1 : nTrials, part(k) + 1 : part(k + 1));
+                        Yk = reshape(Y(:, :, train), numel(unitIds), []);
+                        sd = std(Yk, [], 2);
+                        Y = Y(sd > 0, :, :);
+                        unitIds = unitIds(sd > 0);
+                    end
                 end
                 Yraw = Y;
                 if numel(unitIds) <= par.max_latent_dim
@@ -156,8 +158,13 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 for p = 0 : par.max_latent_dim
                     fprintf('p = %d\n', p)
                     for k = 1 : par.kfold_cv
-                        train = setdiff(part(1) + 1 : part(end), part(k) + 1 : part(k + 1));
-                        test = setdiff(1 : nTrials, train);
+                        if par.kfold_cv > 1
+                            test = part(k) + 1 : part(k + 1);
+                            train = setdiff(1 : nTrials, train);
+                        else
+                            test = 1 : nTrials;
+                            train = 1 : nTrials;
+                        end
                         model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
                         model = model.fit(Y(:, :, train), p, 'hist');
 
