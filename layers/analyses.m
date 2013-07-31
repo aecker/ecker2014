@@ -59,3 +59,12 @@ plotLFP(9)
 plotLFP(11)
 plotLFP(28)
 
+
+%% Residual correlations and layers
+
+% For the first monkey I could identify the transition into white matter
+% for about half the tetrodes. I calculated the depth backwards from those
+% points based on the amount of adjustment between each session.
+residCorrWM()
+
+
