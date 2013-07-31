@@ -68,3 +68,12 @@ plotLFP(28)
 residCorrWM()
 
 
+% For the other two monkeys there weren't enough tetrodes that clearly hit
+% white matter and had enough cells to generate a similar plot. I went a
+% different route and estimated both the depth of white matter and the
+% angle by fitting a plane to the depths of white matter for the tetrodes
+% where I could identify it. Based on that plane and the total adjustment
+% of each tetrode I estimate the depth.
+residCorrWM2()
+
+
