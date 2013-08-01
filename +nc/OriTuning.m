@@ -141,11 +141,12 @@ classdef OriTuning < dj.Relvar
                         tuple.pref_dir = mod(a(3), 2 * pi);
                     else
                         a(4:5) = a([5 4]);
-                        tuple.pref_dir = mod(a(3) + pi, 2 * pi);
+                        a(3) = mod(a(3) + pi, 2 * pi);
+                        tuple.pref_dir = a(3);
                     end
                     tuple.dir_ampl_pref = exp(a(4));
                     tuple.dir_ampl_null = exp(a(5));
-                    f = nc.OriTuning.oriTunFun(a, tuple.pref_dir + [0 pi]);
+                    f = nc.OriTuning.dirTunFun(a, tuple.pref_dir + [0 pi]);
                     tuple.dir_sel_ind = 1 - f(2) / f(1);
                     
                     % significance of direction selectivity (U test)
