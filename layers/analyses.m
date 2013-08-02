@@ -77,3 +77,13 @@ residCorrWM()
 residCorrWM2()
 
 
+%% Correlations vs. layer verified by direction selectivity profile
+%
+% Here I calculated the depths differently for the monkeys, basing the
+% choice on which method produced the clearest profile of direction
+% selectivity index vs. depth. Consistent with Snodderly & Gur I found
+% pronounced direction selectivity in layers 4B and 6. However, with this
+% method I don't find any layer dependence of noise correlations.
+corrLayersDirSel()
+
+
