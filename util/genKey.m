@@ -25,11 +25,16 @@ fields = fieldnames(key);
 for i = 1 : numel(fields)
     name = fields{i};
     value = key(1).(name);
-    if numel(value) > 1
-        key = dj.struct.join(rmfield(key, name), struct(name, num2cell(value(:))));
-    elseif isempty(value)
-        key = rmfield(key, name);
-        oldkey = rmfield(oldkey, name);
+    if ~ischar(value)
+        if numel(value) > 1
+            if ~iscell(value)
+                value = num2cell(value);
+            end
+            key = dj.struct.join(rmfield(key, name), struct(name, value(:)));
+        elseif isempty(value)
+            key = rmfield(key, name);
+            oldkey = rmfield(oldkey, name);
+        end
     end
 end
 key = orderfields(key, oldkey); % restore original order of fields
