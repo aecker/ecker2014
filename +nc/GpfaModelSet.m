@@ -83,7 +83,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                 return
             end
             
-            stimTime = fetch1(nc.Gratings(key), 'stimulus_time');
+            stimTime = fetch1(nc.Gratings & key, 'stimulus_time');
             assert(any(stimTime == [500 2000]), 'Stimulus time must be 500 or 2000 ms!')
             
             for stimTimeLimit = unique([500 stimTime])
