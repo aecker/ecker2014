@@ -2,6 +2,7 @@
 nc.Anesthesia (manual) # Subject to brain state mapping
 
 -> acq.Subjects
+-> detect.Methods
 ---
 state   : enum("awake", "anesthetized")  # brain state during experiment
 %}
