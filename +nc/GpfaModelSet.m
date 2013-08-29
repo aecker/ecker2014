@@ -160,7 +160,7 @@ classdef GpfaModelSet < dj.Relvar & dj.AutoPopulate
                     for k = 1 : par.kfold_cv
                         if par.kfold_cv > 1
                             test = part(k) + 1 : part(k + 1);
-                            train = setdiff(1 : nTrials, train);
+                            train = setdiff(1 : nTrials, test);
                         else
                             test = 1 : nTrials;
                             train = 1 : nTrials;
