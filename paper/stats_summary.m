@@ -1,4 +1,4 @@
-function summary()
+function stats_summary()
 % Summary statistics for dataset
 % AE 2013-08-26
 
