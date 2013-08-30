@@ -42,24 +42,19 @@ analyzeTransforms('subject_id', [9 11], 'control', false, 'by_trial', true)
 % computed as the residual variance on a separate test set (to avoid
 % overfitting and report honest results). This measure can become negative
 % if the model doesn't explain any of the variance. In this case the
-% residual variance will be larger than the actual variance in the data. In
-% some sense this is an advantage over traditional measures of variance
-% explained, which are typically always positive even if the model is not
-% appropriate.
+% residual variance will be larger than the actual variance in the data
+% since noise is added, rather than signal subtracted.
 %
-% I decided against using C*C' as a measure of VE, since it is bound to
-% overestimate the fraction of variance explained due to overfitting to the
-% training set.
-%
-%   * The model clearly explaines substantially more variance in
+%   * The model clearly explains substantially more variance in
 %       anesthetized recordings compared with awake recordings.
 %   * VE increases with cells' firing rates both for awake and anesthetized
 %       data. It seems to plateau for rates > 16 spikes/s.
 %   * Using larger counting windows increases VE substantially for
-%       anesthesia but not for awake data. I don't have a terribly good
-%       explanation for this at the moment. I first thought it was because
-%       the latent process has a faster timescale in awake recordings, but
-%       that's not the case as the analysis of the timescale below shows.
+%       anesthesia but not very much for awake data. I don't have a
+%       terribly good explanation for this at the moment. I first thought
+%       it was because the latent process has a faster timescale in awake
+%       recordings, but that's not the case as the analysis of the
+%       timescale below shows.
 %
 % last update: 2013-03-07
 
