@@ -44,7 +44,7 @@ classdef LfpGpfaCorr < dj.Relvar & dj.AutoPopulate
             nBins = round(stimTime / binSize);
             
             % extract LFP
-            rel = ae.Lfp * acq.EphysStimulationLink & (ephys.Spikes * nc.GpfaUnits & key);
+            rel = ae.Lfp * acq.EphysStimulationLink & key & (ephys.Spikes * nc.GpfaUnits & modelKey);
             lfp = fetchn(rel, 'lfp');
             [Flfp, t0] = fetch1(rel, 'lfp_sampling_rate', 'lfp_t0', 'LIMIT 1');
             [p, q] = rat(Fs / Flfp, 1e-3);
