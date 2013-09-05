@@ -4,6 +4,31 @@ run ~/lab/projects/acq/alex_setPath.m
 run ~/lab/projects/anesthesia/code/setPath.m
 
 
+%% GLM with LFP as input -- weights
+%
+% Here I fitted a GLM with the LFP and the PSTH as predictors (like Kelly
+% et al. 2010). I used the average LFP across all tetrodes that recorded
+% single units.
+%
+%   * LFP weights for both awake animals are distributed mostly around
+%     zero (49% and 55% positive). They are significantly positive for one
+%     of the two monkeys.
+%   * Under anesthesia, weights are biased strongly away from zero,
+%     negative for two monkeys (17% and 29% positive) and positive for the
+%     third monkey (96% positive). 
+%   * The difference between the first two and the third monkey is how the
+%     signal was referenced: in the first two monkeys we used reference
+%     tetrodes either in white matter or on the surface of the cortex; in
+%     the third monkey we referenced relative to ground.
+%   * Weights are also much stronger and the LFP explains much more
+%     variance in the third monkey. This is presumably related to the
+%     referencing.
+%
+% last update: 2013-09-03
+
+glm()
+
+
 %% Correlation between depth of anesthesia and NC
 %
 % Here we compute the ratio of low to high frequency LFP power as a proxy
