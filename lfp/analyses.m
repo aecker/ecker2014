@@ -29,6 +29,24 @@ run ~/lab/projects/anesthesia/code/setPath.m
 glm()
 
 
+%% Correlation between LFP and network state in GPFA model
+%
+% Compute the correlation between the low-pass filtered LFP and the latent
+% variable in the GPFA model. The average value for each trial is
+% subtracted from both LFP and network state (i.e. only the temporal
+% structure within a trial is correlated).
+%
+%   * The average correlation is around 0.2 when using an LFP frequency
+%     band between 0 and 2-3 Hz.
+%   * The best correlation is achieved by the log(x + 0.1) transform and
+%     when subtracting the mean on each trial from both LFP and latent
+%     factor.
+%
+% last update: 2013-09-03
+
+gpfa()
+
+
 %% Correlation between depth of anesthesia and NC
 %
 % Here we compute the ratio of low to high frequency LFP power as a proxy
@@ -98,27 +116,4 @@ anesthesiaDepthWithinSession(true)
 % last update: 2013-01-31
 
 plotSpectra
-
-
-%% Correlation between LFP and first GPFA factor
-%
-% Compute the correlation between the low-pass filtered LFP and the first
-% factor of the GPFA model. The average (over trials, for each condition)
-% of the LFP is subtracted.
-%
-%   * The average correlation is around 0.2 when using an LFP frequency
-%     band between 0 and 2-3 Hz.
-%   * The best correlation is achieved by the log(x + 0.1) transform and
-%     when subtracting the mean on each trial from both LFP and latent
-%     factor.
-%
-% Potential issues:
-%   * As usual I have to flip the sign of the latent factor by some
-%     convention. I'm using the usual convention that the majority of cells
-%     has a positive factor loading. I think this shouldn't cause any
-%     spurious correlations with the LFP.
-%
-% last update: 2013-02-01
-
-gpfa
 

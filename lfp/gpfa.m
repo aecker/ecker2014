@@ -2,29 +2,51 @@ function gpfa()
 % Correlation between LFP and first GPFA factor.
 % AE 2013-02-01
 
-figure(1), clf
-nTrans = count(nc.DataTransforms);
-mr = zeros(1, nTrans);
-for i = 1 : nTrans
-    key = struct('sort_method_num', 5, 'zscore', 1, 'transform_num', i, ...
-        'min_freq', 0, 'max_freq', 2);
-    r = -fetchn(nc.GpfaParams * nc.LfpGpfaCorr & key, 'corr_trial');
-    mr(i) = mean(r);
-    if i == 4
-        subplot(1, 2, 2)
-        bins = -0.075 : 0.05 : 0.625;
-        h = hist(r, bins);
-        h = h / sum(h);
-        bar(bins, h, 1)
-        xlabel('Correlation between X and LFP')
-        ylabel('Fraction of sites')
-        set(gca, 'box', 'off')
+key.project_name = 'NoiseCorrAnesthesia';
+key.sort_method_num = 5;
+key.min_freq = 0.5;
+key.max_freq = 2;
+key.spike_count_start = 30;
+key.control = 0;
+key.bin_size = 100;
+key.max_instability = 0.1;
+key.min_trials = 20;
+key.min_cells = 10;
+key.max_contam = 1;
+key.transform_num = 5;
+key.max_latent_dim = 1;
+key.latent_dim = 1;
+key.kfold_cv = 1;
+key.zscore = false;
+
+states = flipud(unique(fetchn(nc.Anesthesia, 'state')));
+fig = Figure(2, 'size', [150 100]);
+M = 2; N = 3;
+
+for iState = 1 : numel(states)
+    subjIds = fetchn(nc.Anesthesia & struct('state', states{iState}), 'subject_id');
+    k = 1;
+    for iSubj = 1 : numel(subjIds);
+        subjKey = key;
+        subjKey.subject_id = subjIds(iSubj);
+        xc = fetchn(nc.AnalysisStims * nc.LfpGpfaCorr * nc.GpfaParams & subjKey, 'xcorr_trial');
+        xc = [xc{:}];
+        subplot(M, N, (iState - 1) * N + k); k = k + 1;
+        hold on
+        T = (size(xc, 1) - 1) / 2;
+        t = (-T : T) * key.bin_size;
+        plot(t, xc, 'color', 0.5 * ones(1, 3));
+        plot(t, mean(xc, 2), 'color', colors(states{iState}), 'linewidth', 2)
+        xlabel('Offset (ms)')
+        if iSubj == 1
+            ylabel('Cross-correlation')
+        end
         axisTight
+        xlim([-1 1] * min(1000, T * key.bin_size))
+        ylim([-.4 .8])
     end
 end
-subplot(1, 2, 1)
-bar(1 : nTrans, mr, 0.5)
-xlabel('Transform #')
-ylabel('Average correlation')
-axis([0.25 4.75 0 0.28])
-set(gca, 'box', 'off')
+
+fig.cleanup()
+file = strrep(mfilename('fullpath'), 'code', 'figures');
+fig.save([file '.png'])
