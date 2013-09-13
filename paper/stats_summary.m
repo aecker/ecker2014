@@ -35,5 +35,15 @@ for k = key'
     p = fetchn(nc.AnalysisUnits, nc.AnalysisUnits * nc.OriTuning & k, 'min(ori_sel_p) -> p');
     tuned = p < 0.01;
     fprintf('  Orientation tuning: %.1f%% (%d/%d)\n', 100 * mean(tuned), sum(tuned), numel(tuned))
+    
+    % signal and noise correlations for pairs on same tetrode
+    [rsa, rna] = fetchn(nc.AnalysisStims * nc.CleanPairs * nc.NoiseCorrelations & k & 'distance = 0', 'r_signal', 'r_noise_avg');
+    [rs, rn] = fetchn(acq.Subjects, ...
+        nc.AnalysisStims * nc.CleanPairs * nc.NoiseCorrelations & k & 'distance = 0', ...
+        'AVG(r_signal) -> rs', 'AVG(r_noise_avg) -> rn');
+    rstxt = sprintf(', %.3f', rs);
+    rntxt = sprintf(', %.3f', rn);
+    fprintf('  Signal correlations: %.3f (%s)\n', mean(rsa), rstxt(3 : end))
+    fprintf('  Noise correlations:  %.3f (%s)\n', mean(rna), rntxt(3 : end))
     fprintf('\n')    
 end
