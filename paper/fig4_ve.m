@@ -52,8 +52,8 @@ for i = 1 : n
     % binned average VE as a function of firing rate
     subplot(M, N, 3)
     hold on
-    [m, frbinsc] = makeBinned(log2(fr), ve, frbins, @mean, 'include');
-    plot(frbinsc, m, '.-', 'color', colors(keys(i).state))
+    [m, se, frbinsc] = makeBinned(log2(fr), ve, frbins, @mean, @(x) std(x) / sqrt(numel(x)), 'include');
+    errorbar(frbinsc, m, se, '.-', 'color', colors(keys(i).state))
     axis square
     axis(bax)
     set(gca, 'xticklabel', 2 .^ get(gca, 'xtick'))
@@ -64,8 +64,8 @@ for i = 1 : n
     subplot(M, N, 4)
     hold on
     rel = nc.AnalysisStims * nc.GpfaParams * nc.GpfaModelSet * nc.GpfaVE;
-    [t, v] = fetchn(ints, rel & rmfield(keys(i), 'int_bins'), 'bin_size * int_bins -> t', 'AVG(ve_test) -> ve');
-    plot(t, v, '.-', 'color', colors(keys(i).state))
+    [t, v, se] = fetchn(ints, rel & rmfield(keys(i), 'int_bins'), 'bin_size * int_bins -> t', 'AVG(ve_test) -> ve', 'STD(ve_test) / SQRT(COUNT(1)) -> se');
+    errorbar(t, v, se, '.-', 'color', colors(keys(i).state))
     set(gca, 'xscale', 'log', 'xlim', intbins([1 end]) * keys(1).bin_size, ...
         'xtick', intbins * keys(1).bin_size, 'xminortick', 'off', 'ylim', [0 0.15001])
     xlabel('Integration window (ms)')
