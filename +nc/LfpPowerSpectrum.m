@@ -25,6 +25,7 @@ classdef LfpPowerSpectrum < dj.Relvar
             br = baseReader(getLocalPath(lfpFile), sprintf('t%d', key.electrode_num));
             Fs = getSamplingRate(br);
             lfp = br(:, 1);
+            lfp = toMuV(br, lfp);               % convert to muV
 
             % Fill possible gaps in recordings on the Neuralynx system
             if isa(br, 'baseReaderMPI')
