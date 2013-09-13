@@ -30,7 +30,7 @@ classdef LnpModel3Lfp < dj.Relvar
             trials = fetch(validTrials * nc.GratingConditions, 'condition_num');
             trials = dj.struct.sort(trials, 'trial_num');
             conditions = [trials.condition_num];
-            showStim = sort(fetchn(stimulation.StimTrialEvents(validTrials) & 'event_type = "showStimulus"', 'event_time'));
+            showStim = sort(double(fetchn(stimulation.StimTrialEvents(validTrials) & 'event_type = "showStimulus"', 'event_time')));
             
             nTrials = numel(trials);
             nCond = numel(unique(conditions));

@@ -28,9 +28,8 @@ warning         : boolean       # was a warning issued during fitting?
 classdef LnpModel3 < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.LnpModel3');
-        popRel = ((nc.LnpModel3Set * nc.LnpModel3Params * nc.Gratings) & ...
-            'min_trials >= num_trials AND stimulus_time >= stim_time') * ...
-            nc.LnpModel3Spikes('mean_rate > 1') * nc.LnpModel3Lfp;
+        popRel = nc.LnpModel3Set * nc.LnpModel3Params * nc.Gratings * nc.LnpModel3Spikes * ephys.Spikes * nc.LnpModel3Lfp ...
+            & 'min_trials >= num_trials AND stimulus_time >= stim_time AND mean_rate > 1';
     end
     
     methods 
