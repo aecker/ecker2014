@@ -16,6 +16,7 @@ for k = key'
     
     % general dataset
     n = double(fetchn(nc.AnalysisStims, nc.AnalysisUnits & k, 'count(1) -> n'));
+    instab = fetchn(nc.AnalysisStims * nc.UnitStats & k, 'tac_instability') > k.max_instability;
     fprintf('\nBrain state: %s\n', k.state)
     fprintf('  Single units: %d\n', count(nc.AnalysisUnits & k))
     fprintf('  nc.AnalysisStims: %d (%d drifting, %d static)\n', ...
@@ -24,6 +25,7 @@ for k = key'
         count(nc.AnalysisStims * nc.Gratings & k & 'speed = 0'))
     fprintf('  Single units per session\n    range: %d - %d\n    median: %g\n', ...
         min(n), max(n), median(n))
+    fprintf('  Units excluded because of instability: %d/%d (%.1f%%)\n', sum(instab), numel(instab), mean(instab) * 100)
     
     % contamination
     c = fetchn(nc.AnalysisUnits * ephys.SingleUnit & k, 'fp + fn -> c');
