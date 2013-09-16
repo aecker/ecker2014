@@ -11,7 +11,13 @@ fig2_fano_nc
 fig3_rasters
 
 % Fig. 4: Variance explained
+fig4_ve
 
+% Fig. 5: Model parameters: weights and timescale
+fig5_params
 
+% Fig. 6: Residual noise correlations
+fig6_resid
 
-
+% Fig. 7: LFP as predictor of network state
+fig7_lfp
