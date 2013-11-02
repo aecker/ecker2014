@@ -116,7 +116,7 @@ classdef Figure < handle
             s.Preview = 'none';
             s.Units = 'centimeters';
             s.Color = 'rgb';
-            s.Background = 'w';
+            s.Background = get(self.handle, 'color');
             s.ScaledFontSize = 'auto';
             s.FontMode = 'fixed';
             s.FontSizeMin = 8;
