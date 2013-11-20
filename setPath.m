@@ -17,6 +17,10 @@ addpath(pwd)
 cd(fullfile(base, '../../moksm'))
 addpath(pwd)
 
+% plotting
+cd(fullfile(base, '../../figure'))
+addpath(pwd)
+
 % GPFA lib
 run(fullfile(base, '../gpfa/startup.m'))
 
