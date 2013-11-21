@@ -70,6 +70,9 @@ classdef GpfaSpontSet < dj.Relvar & dj.AutoPopulate
         function makeTuples(self, key)
             
             % parameters
+            modelKey = key;
+            key.spike_count_start = 30;
+            key.spike_count_end = 2030;
             sigmaN = 1e-3;  % GP innovation noise
             tol = 1e-4;     % convergence criterion for fitting
             win = [200 1200]; % analysis window (relative to end of stimulus)
@@ -77,7 +80,7 @@ classdef GpfaSpontSet < dj.Relvar & dj.AutoPopulate
             par = fetch(nc.GpfaParams & key, '*');
             
             % Enforce mean firing rate and stability constraints for all cells
-            unitConstraints = sprintf('tac_instability < %f AND spike_count_start = 30 AND spike_count_end = 2030', par.max_instability);
+            unitConstraints = sprintf('tac_instability < %f', par.max_instability);
             nUnits = count(nc.UnitStats & key & unitConstraints);
             if nUnits <= par.max_latent_dim
                 return
@@ -178,7 +181,7 @@ classdef GpfaSpontSet < dj.Relvar & dj.AutoPopulate
                     model = GPFA('SigmaN', sigmaN, 'Tolerance', tol, 'Seed', seed);
                     model = model.fit(Y(:, :, train), p, 'hist');
                     
-                    m = key;
+                    m = modelKey;
                     m.latent_dim = p;
                     m.cv_run = k;
                     m.model = struct(model);
@@ -200,7 +203,7 @@ classdef GpfaSpontSet < dj.Relvar & dj.AutoPopulate
             
             % insert units that were used
             for iUnit = 1 : numel(unitIds)
-                unit = key;
+                unit = modelKey;
                 unit.unit_id = unitIds(iUnit);
                 unit.spont_rate = mean(Yraw(iUnit, :)) * 1000 / par.bin_size;
                 insert(nc.GpfaSpontUnits, unit);
