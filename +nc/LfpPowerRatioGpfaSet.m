@@ -9,14 +9,16 @@ nc.LfpPowerRatioGpfaSet (computed) # Correlation between LFP power and GPFA
 -> nc.LfpPowerRatioGpfaParams
 ---
 power_ratio_avg     : double            # LFP power ratio
+power_low_avg       : double            # LFP low-frequency power
+power_high_avg      : double            # LFP high-frequency power
 %}
 
 classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
     properties(Constant)
         table = dj.Table('nc.LfpPowerRatioGpfaSet');
-        popRel = cont.Lfp * ae.SpikesByTrialSet * nc.Gratings ...
+        popRel = cont.Lfp * ae.SpikesByTrialSet * nc.Gratings * nc.Anesthesia ...
             * nc.GpfaParams * nc.DataTransforms * nc.LfpPowerRatioGpfaParams ...
-            & nc.GpfaModelSet & 'max_latent_dim = 1 AND kfold_cv = 1 AND  zscore = 1 AND subject_id IN (9, 11) AND sort_method_num = 5';
+            & nc.GpfaModelSet & 'max_latent_dim = 1 AND kfold_cv = 1 AND zscore = 0 AND state = "anesthetized" AND sort_method_num = 5';
     end
     
     methods 
@@ -38,10 +40,10 @@ classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
             % determine blocks
             par = fetch(nc.LfpPowerRatioGpfaParams & key, '*');
             trials = validTrialsCompleteBlocks(nc.Gratings & key);
-            showStim = sort(fetchn(trials * stimulation.StimTrialEvents ...
-                & 'event_type = "showStimulus"', 'event_time'));
-            endStim = sort(fetchn(trials * stimulation.StimTrialEvents ...
-                & 'event_type = "endStimulus"', 'event_time'));
+            showStim = double(sort(fetchn(trials * stimulation.StimTrialEvents ...
+                & 'event_type = "showStimulus"', 'event_time')));
+            endStim = double(sort(fetchn(trials * stimulation.StimTrialEvents ...
+                & 'event_type = "endStimulus"', 'event_time')));
             nTrials = numel(showStim);
             nBlocks = par.num_blocks;
             nTrialsPerBlock = fix(nTrials / nBlocks);
@@ -64,9 +66,11 @@ classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
             low = f > par.low_min & f < par.low_max;
             high = (f > par.high_min & f < par.high_max) & ... exclude 50 & 60 Hz (line noise)
                 ~(f > 50 - df & f < 50 + df) & ~(f > 60 - df & f < 60 + df);
-            ratio = mean(Pxx(low, :, :), 1) ./ mean(Pxx(high, :, :), 1);
-            ratio = mean(log2(ratio), 3);
-            rank = tiedrank(ratio);
+            L = mean(Pxx(low, :, :), 1);
+            H = mean(Pxx(high, :, :), 1);
+            ratio = mean(log2(L ./ H), 3);
+            L = db(mean(L, 3));
+            H = db(mean(H, 3));
 
             % get GPFA models
             data = fetch(stimulation.StimTrials * nc.GratingTrials ...
@@ -75,28 +79,32 @@ classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
             trials = [data.trial_num];
             conditions = [data.condition_num];
             X = zeros(1, numel(trials));
-            for modelKey = fetch(nc.GpfaModel & key & 'cv_run = 1 AND latent_dim = 1')'
+            for modelKey = fetch(nc.GpfaModel & key & 'cv_run = 1 AND latent_dim = 1 AND control = false')'
                 [Y, model] = fetch1(nc.GpfaModelSet * nc.GpfaModel & key & modelKey, 'transformed_data', 'model');
                 model = GPFA(model);
                 Xi = model.estX(Y);
-                Xi = (Xi - mean(Xi(:))) / std(Xi(:), 1);
                 X(1 : size(Xi, 2), conditions == modelKey.condition_num) = Xi;
             end
             
             % insert into database
             set = key;
             set.power_ratio_avg = mean(ratio);
+            set.power_low_avg = mean(L);
+            set.power_high_avg = mean(H);
             self.insert(set);
             for iBlock = 1 : nBlocks
                 ndx = trials > (iBlock - 1) * nTrialsPerBlock ...
                     & trials <= iBlock * nTrialsPerBlock;
                 block = key;
                 block.block_num = iBlock;
-                block.block_rank = rank(iBlock);
                 block.power_ratio = ratio(iBlock);
+                block.power_low = L(iBlock);
+                block.power_high = H(iBlock);
                 block.delta_power_ratio = block.power_ratio - set.power_ratio_avg;
-                block.mean_x = mean(mean(X(:, ndx)));
+                block.delta_power_low = block.power_low - set.power_low_avg;
+                block.delta_power_high = block.power_high - set.power_high_avg;
                 block.var_x = var(reshape(X(:, ndx), [], 1), 1);
+                block.delta_var_x = block.var_x - var(X(:));
                 insert(nc.LfpPowerRatioGpfa, block);
             end
         end
