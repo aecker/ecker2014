@@ -2,7 +2,7 @@ function plotSpectra
 % Plot power spectra by tetrode and monkey
 % AE 2013-01-31
 
-for subjectId = [8 23 9 11]
+for subjectId = [8 23 9 11 28]
     figure(subjectId), clf
     set(subjectId, 'defaultaxescolororder', hsv(9))
     k = 1;
