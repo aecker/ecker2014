@@ -47,20 +47,20 @@ legend(arrayfun(@(x) sprintf('%d', x), ndx, 'uni', false))
 axis tight off
 title('SVD components')
 
-% plot correlation of SVD components with depth of anesthesia
-rat = fetchn(acq.Ephys, nc.LfpPowerRatio & key, 'avg(power_ratio) -> r');
-ndx = 1 : 4;
-b = regress(rat, [V(:, ndx) ones(nStim, 1)]);
-subplot(M, 2, 5);
-plot(rat, V(:, ndx) * b(1 : numel(ndx)), '.k')
-axis square
-axisTight(0.2)
-box off
-xlabel('LFP power ratio')
-ylabel('Weight of LFP component')
-
-subplot(M, 2, 6);
-stem(ndx, b(1 : numel(ndx)), 'k')
-xlim(ndx([1 end]) + [-1 1] * 0.5)
-box off
-ylabel('Weight of component #')
+% % plot correlation of SVD components with depth of anesthesia
+% rat = fetchn(acq.Ephys, nc.LfpPowerRatio & key, 'avg(power_ratio) -> r');
+% ndx = 1 : 4;
+% b = regress(rat, [V(:, ndx) ones(nStim, 1)]);
+% subplot(M, 2, 5);
+% plot(rat, V(:, ndx) * b(1 : numel(ndx)), '.k')
+% axis square
+% axisTight(0.2)
+% box off
+% xlabel('LFP power ratio')
+% ylabel('Weight of LFP component')
+% 
+% subplot(M, 2, 6);
+% stem(ndx, b(1 : numel(ndx)), 'k')
+% xlim(ndx([1 end]) + [-1 1] * 0.5)
+% box off
+% ylabel('Weight of component #')
