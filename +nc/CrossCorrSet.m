@@ -45,7 +45,7 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
                 for iUnit = 1 : nUnits
                     psth(:, iUnit) = hist(cat(1, spikes{:, iUnit}), 0 : stimTime) / nTrials;
                     Ai = cellfun(@(ti, tj) calcCCG(ti, ti, stimTime), spikes(:, iUnit), spikes(:, iUnit), 'uni', false);
-                    Si = conv(psth(:, iUnit), psth(:, iUnit));
+                    Si = xcorr(psth(:, iUnit), psth(:, iUnit));
                     A(:, iUnit) = mean([Ai{:}], 2) - Si;
                 end
                 v = sum(A, 1);
@@ -57,9 +57,9 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
                 for iPair = 1 : nPairs
                     i = unitIds(1, iPair);
                     j = unitIds(2, iPair);
-                    Sij = conv(psth(:, i), psth(:, j));
                     Cij = cellfun(@(ti, tj) calcCCG(ti, tj, stimTime), spikes(:, i), spikes(:, j), 'uni', false);
                     Cij = mean([Cij{:}], 2) - Sij;
+                    Sij = xcorr(psth(:, i), psth(:, j));
                     C(:, iPair, iCond) = Cij;
                     Cintij = cumsum(Cij(order)) / sqrt(v(i) * v(j));
                     Cint(:, iPair, iCond) = Cintij(1 : 2 : end);
