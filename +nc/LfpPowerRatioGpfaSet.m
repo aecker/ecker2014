@@ -100,11 +100,11 @@ classdef LfpPowerRatioGpfaSet < dj.Relvar & dj.AutoPopulate
                 block.power_ratio = ratio(iBlock);
                 block.power_low = L(iBlock);
                 block.power_high = H(iBlock);
-                block.delta_power_ratio = block.power_ratio - set.power_ratio_avg;
-                block.delta_power_low = block.power_low - set.power_low_avg;
-                block.delta_power_high = block.power_high - set.power_high_avg;
+                block.rel_power_ratio = 2 .^ (block.power_ratio - set.power_ratio_avg);
+                block.rel_power_low = block.power_low / set.power_low_avg;
+                block.rel_power_high = block.power_high / set.power_high_avg;
                 block.var_x = var(reshape(X(:, ndx), [], 1), 1);
-                block.delta_var_x = block.var_x - var(X(:));
+                block.rel_var_x = block.var_x / var(X(:));
                 insert(nc.LfpPowerRatioGpfa, block);
             end
         end

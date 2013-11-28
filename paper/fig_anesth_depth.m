@@ -72,7 +72,7 @@ for i = 1 : 2
     colorbar
     xlabel('Time (minutes)')
     if i == 1
-        legend({'Var[X]', 'Power ratio'})
+        legend({'Correlation', 'Power ratio'})
         ylabel('Magnitude')
     end
 end
@@ -81,13 +81,13 @@ end
 subplot(3, 3, [3 6 9])
 key.num_blocks = 20;
 rel = nc.LfpPowerRatioGpfa * nc.LfpPowerRatioGpfaParams * nc.GpfaParams;
-[VarX, ratio] = fetchn(rel & key, 'delta_var_x', 'delta_power_ratio');
+[VarX, ratio] = fetchn(rel & key, 'rel_var_x', 'rel_power_ratio');
 plot(ratio, VarX, '.k', 'markersize', 4)
 xlabel('Relative LFP power ratio')
 ylabel('Relative Var of network state')
-ax = [-2, 2, -0.6 - eps, 0.6 + eps];
-axis(ax)
-axis square
+ax = [0.25, 4, 0.25 1.75];
+axis(ax, 'square')
+set(gca, 'xscale', 'log', 'xtick', 2 .^ (-2 : 2), 'ytick', ax(3) : 0.25 : ax(4))
 fprintf('%d outlier(s) cropped\n', sum(ratio < ax(1) | ratio > ax(2) | VarX < ax(3) | VarX > ax(4)))
 
 % Statistics
@@ -97,7 +97,7 @@ fprintf('Correlation coefficient: %.2g (p = %.2g)\n', rho, p)
 % Per monkey statistics
 fprintf('Individual monkeys\n')
 for k = fetch(nc.Anesthesia & key)'
-    [VarX, ratio] = fetchn(rel & key & k, 'delta_var_x', 'delta_power_ratio');
+    [VarX, ratio] = fetchn(rel & key & k, 'rel_var_x', 'rel_power_ratio');
     [rho, p] = corr(ratio, VarX, 'type', 'spearman');
     fprintf('  r = %.2g (p = %.2g)\n', rho, p)
 end
@@ -112,7 +112,7 @@ nk = numel(keys);
 rho = zeros(1, nk);
 p = zeros(1, nk);
 for i = 1 : nk
-    [VarX, ratio] = fetchn(rel & keys(i), 'delta_var_x', 'delta_power_ratio');
+    [VarX, ratio] = fetchn(rel & keys(i), 'rel_var_x', 'rel_power_ratio');
     [rho(i), p(i)] = corr(ratio, VarX, 'type', 'spearman');
 end
 fprintf('Significant positive correlation (p < 0.05) in %d/%d sessions\n', sum(p < 0.05 & rho > 0), nk)
