@@ -45,14 +45,14 @@ for i = 1 : numel(keys)
         set(gca, 'xtick', bins(2 : end - 1), 'xticklabel', 2 .^ bins(2 : end - 1), 'xlim', bins([1 end]))
         
         % Signal correlation
-        bins = -1 : 0.2 : 1;
+        bins = -1 : 0.4 : 1;
         hdl1(p + 1, i) = doPlots(rs, bins, 'Signal correlation');
         set(gca, 'xlim', bins([1 end]))
         
         % Distance
-        bins = 0 : 0.5 : 4;
+        bins = -0.5 : 4.5;
         hdl2(p + 1, i) = doPlots(d, bins, 'Distance');
-        set(gca, 'xlim', bins([1 end]))
+        set(gca, 'xtick', 0 : 4)
     end
 end
 
