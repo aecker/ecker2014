@@ -24,8 +24,7 @@ rm = @(x) x(1 : end - 1, :, :);
 flip = @(x) x(end : -1 : 1, :, :);
 xcorr = @(x, y) rm(fftshift(ifft(fft(augment(x)) .* fft(flip(augment(y))))));
 
-fig = Figure(2, 'size', [60 60]);
-hold on
+fig = Figure(2, 'size', [120 60]);
 for sig = sigma
     
     % generate latent process with specified temporal autocorrelation
@@ -60,14 +59,37 @@ for sig = sigma
     Cvar = bsxfun(@rdivide, Cint, sqrt(Aint(end, 1) * Aint(end, :)));
     Cbair = Cint ./ sqrt(bsxfun(@times, Aint(:, 1), Aint));
     
+    subplot(1, 2, 1)
+    hold on
     plot(mean(Cvar(:, 2 : end), 2), 'k')
     plot(mean(Cbair(:, 2 : end), 2), 'r')
     plot(Kint / Kint(end) * mean(Cvar(3 * tau, 2 : end)), ':', 'color', 0.5 * ones(1, 3))
+    
+    if sig == sigma(3)
+        t = -T + 1 : T - 1;
+        win = gausswin(tau / 4 + 1);
+        win = win / sum(win);
+        CC = convn(mean(C(:, 2 : end), 2), win, 'same');
+        AA = convn(C(:, end), win, 'same');
+        AA(T) = mean(A(T, 2 : end));
+        subplot(1, 2, 2)
+        hold on
+        plot(t, CC, 'color', [1 0.5 0])
+        plot(t, AA, 'color', [0 0.5 0])
+        legend({'Cross-correlation', 'Auto-correlation'})
+        set(gca, 'yscale', 'log', 'ylim', 10 .^ [-3 2], 'xlim', [-1 1] * 3 * tau, 'xtick', (-2 : 2) * 1.5 * tau)
+        set(gca, 'yticklabel', get(gca, 'ytick'))
+        xlabel('Time lag (ms')
+        ylabel('Correlation')
+        axis square
+    end
 end
+
+subplot(1, 2, 1)
 axis square
 set(gca, 'xscale', 'log', 'xlim', [1 2000], 'xtick', [1 10 100 1000], 'xticklabel', [1 10 100 1000])
 xlabel('Integration time (ms)')
-ylabel('Cumulative correlation')
+ylabel('Cumulative correlation coefficient')
 legend({'Normalized by total variance', 'Method from Bair et al. 2001', 'Ground truth'})
 fig.cleanup();
 
