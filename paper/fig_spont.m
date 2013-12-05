@@ -76,7 +76,7 @@ hold on
 bins = -0.025 : 0.05 : 1.025;
 [m, binc] = makeBinned(x, C, bins, @mean, 'include');
 plot(binc, m, 'k')
-set(gca, 'xlim', [-0.05 1.05], 'xtick', [0.1 0.9], 'xticklabel', {'weakest', 'strongest'}, 'ylim', [-0.2 1])
+set(gca, 'xlim', [-0.05 1.05], 'xtick', [0.1 0.9], 'xticklabel', {'weakest', 'strongest'}, 'ylim', [-0.2, 1 + eps])
 plot(xlim, [0 0], 'k')
 ylabel('Weight')
 xlabel('Cells sorted by weight')
@@ -112,7 +112,7 @@ m = median(tau);
 yl = 0.3;
 plot(log(m), yl, '.k')
 text(log(m), yl, sprintf('   %.1f', m))
-set(gca, 'xtick', tsbins(1 : 4 : end), 'box', 'off', 'xlim', tsbins([1 end]), 'ylim', [0 yl])
+set(gca, 'xtick', tsbins(1 : 4 : end), 'box', 'off', 'xlim', tsbins([1 end]), 'ylim', [0, yl + eps])
 set(gca, 'xticklabel', exp(get(gca, 'xtick')))
 xlabel('Timescale (SD in ms)')
 ylabel('Fraction of sites')
@@ -150,28 +150,30 @@ for p = 0 : 1
     ylabel('Average correlation')
     xlim(bins([1 end])) 
     axis square
-    set(gca, 'xtick', bins(2 : end - 1), 'xticklabel', 2 .^ bins(2 : end - 1), 'xlim', bins([1 end]))
+    set(gca, 'xtick', bins(2 : end - 1), 'xticklabel', 2 .^ bins(2 : end - 1), ...
+        'xlim', bins([1 end]), 'ylim', [-0.02 0.25])
     
     % Signal correlation
-    bins = -1 : 0.2 : 1;
+    bins = -1 : 0.4 : 1;
     subplot(M, N, 8);
     hold on
     [m, se] = binnedMeanAndErrorbars(rs, resid, st, bins);
     binc = makeBinned([], [], bins);
     errorbar(binc, m, se, linestyle, 'markersize', 5);
     xlabel('Signal correlation')
-    xlim(bins([1 end])) 
+    set(gca, 'xlim', bins([1 end]), 'xtick', -1 : 0.5 : 1, 'ylim', [-0.02 0.12])
     axis square
 
     % Distance
-    bins = 0 : 0.5 : 4;
+    bins = -0.5 : 4.5;
     subplot(M, N, 9);
     hold on
     [m, se] = binnedMeanAndErrorbars(d, resid, st, bins);
     binc = makeBinned([], [], bins);
     errorbar(binc, m, se, linestyle, 'markersize', 5);
     xlabel('Distance (mm)')
-    xlim(bins([1 end])) 
+    axisTight()
+    set(gca, 'xtick', 0 : 4, 'ylim', [-0.02 0.1])
     axis square
 end
 
