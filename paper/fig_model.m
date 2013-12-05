@@ -11,14 +11,14 @@ phi = (0 : N - 1) / N * 2 * pi;     % preferred orientations
 kappa = 2;                          % tuning sharpness
 mu = kappa * cos(phi) - 0.5;        % tuning curve (natural rate)
 dt = 100;                           % time window size (ms)
-T = 10000;                          % # bins
-sigma = 0.16;                       % variance of network state
+T = 100000;                          % # bins
+sigma = 0.15;                       % variance of network state
 int = 5;                            % # bins to integrate
 tau = 200;                          % timescale of latent process
 
 % generate latent process with specified temporal autocorrelation
 t = dt * (-T : T)';
-K = exp(-t .^ 2 / tau ^ 2);
+K = exp(-1/2 * t .^ 2 / tau ^ 2);
 rng(1);     % ensure deterministic result
 g = sigma * real(ifft(bsxfun(@times, fft(randn(2 * T + 1, 1)), sqrt(abs(fft(K))))));
 
