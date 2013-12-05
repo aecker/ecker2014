@@ -23,7 +23,7 @@ key.max_latent_dim = 1;
 key.latent_dim = 1;
 key.kfold_cv = 1;
 key.zscore = false;
-key.all_tt = true;
+key.all_tt = false;
 key.num_blocks = 100;
 key.state = 'anesthetized';
 
