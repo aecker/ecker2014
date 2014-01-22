@@ -26,6 +26,7 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
             nPairs = numel(pairs);
 
             C = zeros(2 * stimTime + 1, nPairs, nCond);
+            CS = C;
             Cint = zeros(stimTime + 1, nPairs, nCond);
             Cbair  = Cint;
             CSint = Cint;
@@ -54,6 +55,9 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
                     A(:, iUnit) = mean([Ai{:}], 2) - Si;
                     AS(:, iUnit) = mean([Ai{:}], 2) - mean([ASi{:}], 2);
                 end
+                fr = sum(psth, 1);
+                A = bsxfun(@rdivide, A, fr);
+                AS = bsxfun(@rdivide, AS, fr);
                 v = sum(A, 1);
                 vs = sum(AS, 1);
                 
@@ -68,7 +72,7 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
                     % using all-way shuffle predictor
                     Sij = xcorr(psth(:, i), psth(:, j));
                     CC = cellfun(@(ti, tj) calcCCG(ti, tj, stimTime), spikes(:, i), spikes(:, j), 'uni', false);
-                    Cij = mean([CC{:}], 2) - Sij;
+                    Cij = (mean([CC{:}], 2) - Sij) / sqrt(fr(i) * fr(j));
                     C(:, iPair, iCond) = Cij;
                     Cintij = cumsum(Cij(order)) / sqrt(v(i) * v(j));
                     Cint(:, iPair, iCond) = Cintij(1 : 2 : end);
@@ -77,7 +81,8 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
                     
                     % using one-trial shift predictor
                     CCS = cellfun(@(ti, tj) calcCCG(ti, tj, stimTime), spikes(1 : end - 1, i), spikes(2 : end, j), 'uni', false);
-                    CSij = mean([CC{:}], 2) - mean([CCS{:}], 2);
+                    CSij = (mean([CC{:}], 2) - mean([CCS{:}], 2)) / sqrt(fr(i) * fr(j));
+                    CS(:, iPair, iCond) = CSij;
                     CSintij = cumsum(CSij(order)) / sqrt(vs(i) * vs(j));
                     CSint(:, iPair, iCond) = CSintij(1 : 2 : end);
                     CSbairij = cumsum(CSij(order)) ./ sqrt(prod(cumsum(AS(order, [i j])), 2));
@@ -91,13 +96,18 @@ classdef CrossCorrSet < dj.Relvar & dj.AutoPopulate
             tuple.lags = -stimTime : stimTime;
             self.insert(tuple);
             
-            C = mean(C, 3);
-            Cint = mean(Cint, 3);
-            Cbair = mean(Cbair, 3);
+            win = triang(size(C, 1));
+            C = bsxfun(@rdivide, nanmean(C, 3), win);
+            CS = bsxfun(@rdivide, nanmean(CS, 3), win);
+            Cint = nanmean(Cint, 3);
+            Cbair = nanmean(Cbair, 3);
+            CSint = nanmean(CSint, 3);
+            CSbair = nanmean(CSbair, 3);
             for iPair = 1 : nPairs
                 tuple = key;
                 tuple.pair_num = pairs(iPair);
                 tuple.ccg = C(:, iPair);
+                tuple.ccg_shift = CS(:, iPair);
                 tuple.r_ccg = Cint(:, iPair);
                 tuple.r_ccg_bair = Cbair(:, iPair);
                 tuple.r_ccg_shift = CSint(:, iPair);

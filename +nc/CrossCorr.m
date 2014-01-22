@@ -4,7 +4,8 @@ nc.CrossCorr (computed) # Cross-correlogram
 -> nc.CrossCorrSet
 -> nc.UnitPairs
 ---
-ccg                 : mediumblob    # cross-correlogram
+ccg                 : mediumblob    # shuffle-corrected cross-correlogram
+ccg_shift           : mediumblob    # shift-corrected cross-correlogram
 r_ccg               : mediumblob    # r_ccg normalized by variance
 r_ccg_bair          : mediumblob    # r_ccg with Bair's method (integrate var)
 r_ccg_shift         : mediumblob    # r_ccg using shift predictor
