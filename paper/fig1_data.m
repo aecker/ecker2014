@@ -1,5 +1,6 @@
 function fig1_data
-% Fig. 1: rasters by neuron and tuning curves
+% Fig. 1: Rasters by neuron and tuning curves
+%
 % AE 2013-06-12
 
 load exampleKeys.mat

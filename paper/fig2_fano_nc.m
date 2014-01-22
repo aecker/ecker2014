@@ -1,5 +1,5 @@
 function fig2_fano_nc
-% Fig.2: Fano factors and noise correlations
+% Fig. 2: Fano factors and noise correlations
 %   We plot histograms for awake vs. anesthetized recordings as well as
 %   both measures' dependence of firing rates.
 %

@@ -1,5 +1,5 @@
-function fig7_lfp
-% Fig. 7: Low-frequency LFP as a predictor of network state
+function fig8_lfp
+% Fig. 8: Low-frequency LFP as a predictor of network state
 %
 % AE 2013-09-04
 

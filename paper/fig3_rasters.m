@@ -1,5 +1,6 @@
 function fig3_rasters
-% Fig. 3: rasters grouped by trial
+% Fig. 3: Rasters grouped by trial
+%
 % AE 2013-01-09
 
 load exampleKeys.mat

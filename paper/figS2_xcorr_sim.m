@@ -1,7 +1,5 @@
-function suppl_fig_xcorr_sim
-% Network state model under dynamic stimulus
-%   Multiplicative (gain) firing rate modulations with Poisson-like
-%   Gaussian noise (variance = mean).
+function figS2_xcorr_sim
+% Fig. S2: Network state fluctuations under dynamic stimulus
 %
 % AE 2013-12-02
 

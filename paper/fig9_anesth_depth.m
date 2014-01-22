@@ -1,6 +1,8 @@
-function fig_anesth_depth
-% Fig.: Depth of anesthesia indicated by ratio of low-frequency LFP power
-%   to gamma power.
+function fig9_anesth_depth
+% Fig. 9: Depth of anesthesia
+%   We estimate depth of anesthesia by taking the ratio of low-frequency
+%   LFP power to gamma power and correlate it with the overall level of
+%   correlations as measured by the variance of the network state variable.
 %
 % AE 2013-11-22
 

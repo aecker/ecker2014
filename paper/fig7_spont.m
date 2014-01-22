@@ -1,5 +1,5 @@
-function fig_spont
-% Fig. XX: Variance explained by GPFA model during spontaneous activity.
+function fig7_spont
+% Fig. 7: GPFA model during spontaneous activity.
 %
 % AE 2013-10-28
 

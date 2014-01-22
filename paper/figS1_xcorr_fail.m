@@ -1,7 +1,8 @@
-function suppl_fig_xcorr_fail
-% Example of where Bair's method of integrating cross- and
-% auto-correlograms to compute r_CCG(tau) fails because integral of
-% auto-correlogram becomes negative.
+function figS1_xcorr_fail
+% Fig. S1: Example where Bair's method fails
+%   Integrating both cross- and auto-correlograms to compute r_CCG(tau) can
+%   fail unde some conditions because integral of auto-correlogram can be
+%   negative.
 %
 % AE 2013-12-03
 

@@ -1,7 +1,8 @@
-function suppl_fig_xcorr
-% Suppl. Fig. 1: Timescale by integrating cross-correlogram
+function figS3_xcorr
+% Fig. S3: Timescale of correlations by integrating cross-correlogram
 %   Here we integrate the cross-correlogram to compute the timescale of
-%   correlation as suggested by Bair et al. 2001 (J Neurosci).
+%   correlation as suggested by Bair et al. 2001 (J Neurosci) to compare
+%   it to the data from Smith & Kohn 2008
 %
 % AE 2013-11-28
 

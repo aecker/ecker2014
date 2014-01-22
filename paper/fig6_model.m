@@ -1,5 +1,5 @@
-function fig_model
-% Noise correlations under fluctuating network state
+function fig6_model
+% Fig. 6: Model of noise correlations under fluctuating network state
 %   We model a homogeneous population of neurons with circular Gaussian
 %   tuning curves driven by a common network state (gain), which is
 %   modulated with a timescale of 200 ms.

@@ -1,5 +1,5 @@
-function fig6_resid
-% Fig. 6: Residual noise correlations after accounting for network state.
+function fig5_resid
+% Fig. 5: Residual noise correlations after accounting for network state.
 %
 % AE 2013-08-30
 

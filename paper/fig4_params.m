@@ -1,5 +1,5 @@
-function fig5_params
-% Fig. 5: Model parameters
+function fig4_params
+% Fig. 4: Model parameters (weights and timescale)
 %
 % AE 2013-08-29
 

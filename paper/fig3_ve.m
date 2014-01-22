@@ -1,6 +1,6 @@
-function fig4_ve
-% Fig. 4: Variance explained by one-factor GPFA model.
-%   Here I compute percent variance explained on the test set for the one-
+function fig3_ve
+% Fig. 3: Variance explained by one-factor GPFA model.
+%   Here we compute percent variance explained on the test set for the one-
 %   factor GPFA model for each cell as a function of both firing rates and
 %   brain state.
 %
