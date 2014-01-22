@@ -1,3 +1,13 @@
+% NOTE
+%
+% This file is a copy taken from from https://github.com/aecker/figure in
+% order to reduce the number of external dependencies for the current
+% repository (ecker2014).
+%
+% If you intend to use this class in a different context it is recommended
+% to clone the repository cited above (to be able to commit changes,
+% receive bug fixes etc.)
+
 classdef Figure < handle
     % Publication ready figure.
     %   This class helps automating the creation of figures that can be
