@@ -1,55 +1,42 @@
-% Processing my anesthetized noise correlation data
-% AE 2012-02-14
+% Code for populating database tables.
+%
+%   This script won't run as is, since certain steps (e.g. spike detection)
+%   were run on dedicated computers. Also, some of the analyses require
+%   lots of CPU usage and memory and were run on a compute cluster.
+%
+% AE 2013-01-22
 
-restriction = 'subject_id in (8, 9, 11, 23) and sort_method_num = 5';
+
+% Subjects and parameters for data processing
+restriction = 'subject_id in (8, 9, 11, 23) AND detect_method_num = 4 AND sort_method_num = 5';
+
+
+%% Initial data processing (spike detection & extraction)
 
 % create spike detection and sorting jobs
-ephysKeys = fetch(acq.Ephys(restriction) & acq.EphysStimulationLink);
+ephysKeys = fetch(acq.Ephys & acq.EphysStimulationLink & restriction);
 detectKeys = [];
 for ephysKey = ephysKeys'
     detectKey = createDetectSet(ephysKey);
     createSortSet(detectKey);
 end
 
-% spike detection (on at-detect)
+% spike detection
 populate(detect.Sets, restriction);
 
 
-%% Spike sorting (OLD WAY)
-% automatic spike sorting (on HNL cluster -> mackey)
-% /home/toliaslab/users/alex/projects/acq/processing/cluster/run
+%% Spike sorting using Kalman filter model
 
-% % automatic sorting on local computer
-% addpath ~/lab/projects/clustering
-% run ~/lab/libraries/various/spider/use_spider.m
-% matlabpool
-% parfor i = 1:12
-%     parpopulate(sort.TetrodesMoGAutomatic, subject)
-% end
-% matlabpool close
-% 
-% % manual spike sorting step
-% sortKeys = fetch(sort.Sets(subject));
-% manualSortDone(sortKeys(1), tetrodeNum, 'Comment')
-% % ...
-% 
-% % finalize spike sorting
-% populate(sort.TetrodesMoGFinalize, subject)
-% populate(sort.SetsCompleted, subject)
-
-
-%% Spike sorting Kalman filter model (NEW WAY)
-% manually create sort.Params tuples and insert
-populate(sort.Sets, 'sort_method_num = 5', restriction)
-
-addpath ~/lab/libraries/various/mex_tt
+% automatic step
+populate(sort.Sets, restriction)
+addpath ~/lab/libraries/various/mex_tt  % needed only for old MPI data
 matlabpool
-parfor i = 1:12
+parfor i = 1 : 12
     parpopulate(sort.KalmanAutomatic, restriction)
 end
 matlabpool close
 
-% manual sorting
+% manual verification step
 populate(sort.KalmanManual, restriction)
 
 % finalize
@@ -58,39 +45,22 @@ populate(sort.SetsCompleted, restriction)
 populate(ephys.SpikeSet, restriction)
 
 
-%% Multi unit
-% createSortSet(fetch(detect.Params(subject) - sort.Params('sort_method_num=4')), 'MultiUnit')
-populate(sort.Sets, restriction)
-populate(sort.MultiUnit, restriction)
-populate(sort.SetsCompleted, restriction)
-populate(ephys.SpikeSet, restriction)
+%% Visual stimulation
 
-
-%% Analysis tables
-
-% stimulation
 populate(stimulation.StimTrialGroup, restriction)
 populate(nc.Gratings, restriction)
 
-% spikes
-populate(ephys.SpikeSet, restriction)
 
-% pairs of neurons
+%% Noise correlations etc.
+
 populate(nc.UnitPairSet, restriction)
-
-
-%% noise correlations
-% matlabpool
-parfor i = 1:12
+matlabpool
+parfor i = 1 : 12
     parpopulate(ae.SpikeCountSet, restriction)
     parpopulate(ae.SpikesByTrialSet, restriction)
     parpopulate(nc.OriTuningSet, restriction)
-    parpopulate(nc.NoiseCorrelationSet, restriction)
     parpopulate(nc.UnitStatsSet, restriction)
+    parpopulate(nc.NoiseCorrelationSet, restriction)
 end
-% matlabpool close
+matlabpool close
 
-% stimulus
-
-%%
-populate(ae.LfpByTrialSet, restriction)
