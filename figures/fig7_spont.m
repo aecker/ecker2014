@@ -53,7 +53,8 @@ xlabel('Firing rate (spikes/s)')
 subplot(M, N, 3)
 hold on
 rel = nc.AnalysisStims * nc.GpfaParams * nc.GpfaSpontSet * nc.GpfaSpontVE;
-[t, v, se] = fetchn(ints, rel & rmfield(key, 'int_bins'), 'bin_size * int_bins -> t', 'AVG(ve_test) -> ve', 'STD(ve_test) / SQRT(COUNT(1)) -> se');
+[t, v, se] = fetchn(ints, rel & rmfield(key, 'int_bins'), 'int_bins', 'AVG(ve_test) -> ve', 'STD(ve_test) / SQRT(COUNT(1)) -> se');
+t = t * key.bin_size;
 errorbar(t, v, se, '.-k')
 set(gca, 'xscale', 'log', 'xlim', intbins([1 end]) * key(1).bin_size, ...
     'xtick', intbins * key(1).bin_size, 'xminortick', 'off', 'ylim', [0 0.2])
