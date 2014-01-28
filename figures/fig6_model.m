@@ -23,7 +23,7 @@ rng(1);     % ensure deterministic result
 g = sigma * real(ifft(bsxfun(@times, fft(randn(2 * T + 1, 1)), sqrt(abs(fft(K))))));
 
 % sample spike counts
-f = exp(bsxfun(@plus, g, mu));
+f = bsxfun(@times, 1 + g, exp(mu));
 Y = poissrnd(f);
 
 % noise correlations by integrating several bins
@@ -39,7 +39,7 @@ rsig = (toeplitz(f) * f / N - mean(f) ^ 2) / var(f, 1);
 rsig = offdiag(toeplitz(rsig));
 
 % plot
-fig = Figure(1, 'size', [95 50]);
+fig = Figure(1, 'size', [90 50]);
 
 subplot(1, 2, 1)
 bins = -1 : 6;
