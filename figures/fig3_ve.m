@@ -69,7 +69,8 @@ for i = 1 : n
     subplot(M, N, 4)
     hold on
     rel = nc.AnalysisStims * nc.GpfaParams * nc.GpfaModelSet * nc.GpfaVE;
-    [t, v, se] = fetchn(ints, rel & rmfield(keys(i), 'int_bins'), 'bin_size * int_bins -> t', 'AVG(ve_test) -> ve', 'STD(ve_test) / SQRT(COUNT(1)) -> se');
+    [t, v, se] = fetchn(ints, rel & rmfield(keys(i), 'int_bins'), 'int_bins', 'AVG(ve_test) -> ve', 'STD(ve_test) / SQRT(COUNT(1)) -> se');
+    t = t * keys(1).bin_size;
     errorbar(t, v, se, linestyle{i}, 'color', colors(keys(i).state))
     set(gca, 'xscale', 'log', 'xlim', intbins([1 end]) * keys(1).bin_size, ...
         'xtick', intbins * keys(1).bin_size, 'xminortick', 'off', 'ylim', [0 0.15001])
