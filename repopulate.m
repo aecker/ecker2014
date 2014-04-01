@@ -7,14 +7,11 @@
 % AE 2013-01-22
 
 
-% Subjects and parameters for data processing
-restriction = 'subject_id in (8, 9, 11, 23) AND detect_method_num = 4 AND sort_method_num = 5';
-
-
 %% Initial data processing (spike detection & extraction)
+sorting = sort.Methods & 'sort_method_name = "MoKsm"';
 
 % create spike detection and sorting jobs
-ephysKeys = fetch(acq.Ephys & acq.EphysStimulationLink & restriction);
+ephysKeys = fetch(acq.Ephys & (acq.EphysStimulationLink & nc.Gratings & nc.Anesthesia));
 detectKeys = [];
 for ephysKey = ephysKeys'
     detectKey = createDetectSet(ephysKey);
@@ -22,10 +19,11 @@ for ephysKey = ephysKeys'
 end
 
 % spike detection
-populate(detect.Sets, restriction);
+populate(detect.Sets, ephysKeys, sorting);
 
 
 %% Spike sorting using Kalman filter model
+restriction = {nc.Anesthesia, sorting};
 
 % automatic step
 populate(sort.Sets, restriction)
@@ -46,12 +44,14 @@ populate(ephys.SpikeSet, restriction)
 
 
 %% Visual stimulation
+restriction = nc.Anesthesia;
 
 populate(stimulation.StimTrialGroup, restriction)
 populate(nc.Gratings, restriction)
 
 
 %% Noise correlations etc.
+restriction = {nc.Anesthesia, sorting};
 
 populate(nc.UnitPairSet, restriction)
 matlabpool
