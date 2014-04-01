@@ -122,6 +122,7 @@ Installation
 	* https://github.com/datajoint/datajoint-matlab -- [required] DataJoint
 	* https://github.com/datajoint/mym -- [required] Matlab/MySQL interface
 	* https://github.com/atlab/sessions -- [required] meta data stored by acquisition system and processing (spike detection and sorting) toolchain
+	* https://github.com/aecker/gpfa -- [required] Gaussian Process Factor Analysis (GPFA) implementation
 	* https://github.com/atlab/spikedetection -- spike detection
 	* https://github.com/aecker/moksm -- spike sorting
 
