@@ -156,8 +156,12 @@ This schema contains my (AE) general purpose electrophysiology tables. The follo
 
 ### Schema `nc`
 
-This schema contains the concrete analyses done in the paper. The specific tables are listed in the previous sections for each analysis.
+This schema contains the concrete analyses done in the paper. The specific tables are listed in the previous sections for each analysis. In addition, the following tables may be of interest:
 
+* `Gratings`, `GratingConditions`: contain the grating parameters for the different stimulus conditions
+* `Anesthesia`: lists monkeys used for awake vs. anesthetized recordings
+* `CrossCorrSet`: computes the cross-correlograms (Supplemental Information, Fig. S3)
+* `UnitPairs`, `UnitPairMembership`: contains all pairs of units
 
 
 
@@ -167,10 +171,10 @@ Installation
 1. Download and install the [MySQL Community Server](http://dev.mysql.com/downloads/mysql/)
 
 2. Insert database dump.
-	* URL
-	* Code to do it
+	* Download the [database dump](http://bethgelab.org/files/ecker2014.zip)
+	* Insert the dump file into the database (replace `<HOST>` and `<USER>` by the database host and username, respectively): ```mysql -h <HOST> -u <USER> -p < ecker2014.sql```
 
-3. Download the following repositories, depending on what you intend to do
+3. Download the following repositories, depending on what you intend to do. All repositories should reside in the same base folder as this repository.
 	* https://github.com/aecker/ecker2014 -- [required] main analysis code (this repo)
 	* https://github.com/datajoint/datajoint-matlab -- [required] DataJoint
 	* https://github.com/datajoint/mym -- [required] Matlab/MySQL interface
@@ -180,8 +184,7 @@ Installation
 	* https://github.com/aecker/moksm -- spike sorting
 
 4. Set Matlab path
-	* run ecker2014/startup
-	* Describe assumptions about where things have to be relative to main repo
-
+	* In Matlab, run `ecker2014/startup` to set the path etc.
+	* You may have to compile mym, the Matlab-MySQL database connector utility. Refer to the readme of the mym repository for details.
 
 
