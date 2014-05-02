@@ -43,10 +43,10 @@ Below we provide an overview of the analysis tables used for the current project
 
 In addition to the classes defined in this repository, we use a number of general purpose libraries for the basic organization of our experimental data and tasks such as spike detection and sorting. These libraries can be found on Github as well:
 
-	* https://github.com/atlab/sessions -- meta data stored by acquisition system and processing toolchain (database schemas acq, detect, sort)
-	* https://github.com/atlab/spikedetection -- spike detection
-	* https://github.com/aecker/moksm -- spike sorting
-	* https://github.com/aecker/gpfa -- Gaussian Process Factor Analysis (GPFA)
+* https://github.com/atlab/sessions -- meta data stored by acquisition system and processing toolchain (database schemas acq, detect, sort)
+* https://github.com/atlab/spikedetection -- spike detection
+* https://github.com/aecker/moksm -- spike sorting
+* https://github.com/aecker/gpfa -- Gaussian Process Factor Analysis (GPFA)
 
 
 
@@ -117,11 +117,11 @@ Each Matlab package (+xyz) maps to a database schema and each Matlab class to a 
 
 This schema contains the metadata entered into the database by the recording software during data collection. The following tables are most relevant:
 
-	* `Subjects`: list of monkeys
-	* `Sessions`: experimental sessions (can contain multiple recordings and stimuli)
-	* `Ephys`: electrophysiological recording
-	* `Stimulation`: visual stimulus presentation
-	* `EphysStimuliationLink`: links simultaneous ephys recordings and stimulus presentations
+* `Subjects`: list of monkeys
+* `Sessions`: experimental sessions (can contain multiple recordings and stimuli)
+* `Ephys`: electrophysiological recording
+* `Stimulation`: visual stimulus presentation
+* `EphysStimuliationLink`: links simultaneous ephys recordings and stimulus presentations
 
 
 
@@ -147,10 +147,10 @@ The schema contains general purpose electrophysiology tables. Only `ephys.Spikes
 
 This schema contains my (AE) general purpose electrophysiology tables. The following tables are most relevant:
 
-	* `SpikesByTrial`: spike times relative to stimulus onset for each trial
-	* `SpikeCounts`: spike count in a certain window (see `SpikeCountParams`) for each cell and each trial
-	* `Lfp`: bandpass-filtered LFP trace (see `LfpParams` for parameters)
-	* `LfpByTrial`: LFP snippet for each trial aligned to stimulus onset
+* `SpikesByTrial`: spike times relative to stimulus onset for each trial
+* `SpikeCounts`: spike count in a certain window (see `SpikeCountParams`) for each cell and each trial
+* `Lfp`: bandpass-filtered LFP trace (see `LfpParams` for parameters)
+* `LfpByTrial`: LFP snippet for each trial aligned to stimulus onset
 
 
 
